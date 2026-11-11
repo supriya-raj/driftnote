@@ -8,7 +8,7 @@ This is a learning project. I want to understand how local-first software works 
 ## What I want to learn
 - How CRDTs (via Yjs) resolve concurrent edits, and how that differs from operational transform
 - How to design for offline-first: storage choices, sync cost, schema evolution
-- How rich-text editors work under the hood (ProseMirror via TipTap)
+- How a block-based rich-text editor (BlockNote) binds to a CRDT, and enough of the layers underneath (TipTap, ProseMirror, `contenteditable`) to debug it
 - How to test real-time, multi-user, and flaky-network behavior
 - How to profile and improve performance on large documents
 - How to make a complex editing UI accessible
@@ -28,7 +28,7 @@ Open to change. Record any change as an ADR.
 
 - **Monorepo:** pnpm workspaces with `apps/web`, `apps/sync-server`, `packages/shared`
 - **Frontend:** React + TypeScript + Vite
-- **Editor:** TipTap (ProseMirror) with the Yjs collaboration extensions
+- **Editor:** BlockNote (built on TipTap/ProseMirror) with its built-in Yjs collaboration (see ADR 003)
 - **CRDT:** Yjs
 - **Local persistence:** `y-indexeddb` first. Later: SQLite-WASM on OPFS for the note index and search.
 - **Sync server:** Node + WebSocket (Hocuspocus or `y-websocket`). Later: try Cloudflare Durable Objects.
@@ -42,7 +42,7 @@ Monorepo, strict TypeScript, ESLint/Prettier, Vitest, CI skeleton, README stub.
 **Done when:** CI is green on an empty app.
 
 ### M1: Single-user, offline-first editor
-TipTap editor, note list, create/rename/delete, persisted via `y-indexeddb`. Works with the network disabled.
+BlockNote editor, note list, create/rename/delete, persisted via `y-indexeddb`. Works with the network disabled.
 **Done when:** a Playwright test creates a note, goes offline, reloads, and sees the note intact.
 
 ### M2: Real-time collaboration

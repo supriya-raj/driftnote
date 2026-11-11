@@ -1,6 +1,6 @@
 # ADR 003: Rich-text editor
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-11)
 - **Date:** 2026-11-11
 
 ## Context
@@ -58,7 +58,7 @@ The brief proposed TipTap; this ADR records a change from that.
 
 ## Decision
 
-Proposed: **BlockNote**, chosen by the project owner for its Notion-style UX and
+**BlockNote**, chosen by the project owner for its Notion-style UX and
 built-in collaboration.
 
 - Use only BlockNote's open-source (MPL-2.0) core packages; avoid the GPL/commercial
@@ -68,12 +68,12 @@ built-in collaboration.
 - UI kit: start with the default (Mantine); evaluate the Ariakit variant during M5
   accessibility work.
 
-Open questions (to be resolved before acceptance):
-1. Media/file blocks. Proposed: remove image/video/audio/file blocks from the schema for
-   now; keep tables and standard text blocks.
-2. Owner confirms the trade-off: the brief's learning goal "how rich-text editors work
-   under the hood" will be pursued by deliberately digging through BlockNote → TipTap →
-   ProseMirror, not by building on TipTap directly.
+Resolved questions:
+1. Media/file blocks: removed from the schema for now (image, video, audio, file).
+   Tables and standard text blocks are kept.
+2. Learning goal: the owner accepts the trade-off; the brief's editor learning goal is
+   revised to focus on how a block editor integrates with a CRDT, with internals studied
+   by deliberately digging through BlockNote, TipTap and ProseMirror.
 
 ## Consequences
 
