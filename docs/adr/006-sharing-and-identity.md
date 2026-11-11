@@ -1,6 +1,6 @@
 # ADR 006: Sharing, identity and recovery
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-11)
 - **Date:** 2026-11-11
 
 ## Context
@@ -47,7 +47,7 @@ on demand with a role. Server stores only token **hashes** and checks them on co
 
 ## Decision
 
-Proposed: **B**.
+**B**, including view-only links. Recovery is deferred.
 
 - **Tokens:** 128-bit+ random, generated with `crypto.getRandomValues`. Roles: `owner`,
   `edit`, `view`. Server stores `sha256(token)`, role, note ID, created/revoked timestamps.
@@ -81,15 +81,19 @@ Proposed: **B**.
   "deleted by owner". Non-owners remove the note from their own list only.
 - **Display identity:** name and colour chosen locally on first use, stored in
   `localStorage`; unverified.
-- **Recovery:** a per-browser **workspace**: a secret workspace ID plus token. The note list
-  (IDs and tokens) is mirrored into a small workspace `Y.Doc` that syncs to the server
-  (the additive "index doc" upgrade left open in ADR 002). The user saves a **recovery
-  link**; opening it in any browser restores the list. This also enables multi-device.
+- **Token IDs:** each token row has a short non-secret ID (a label, like a key-ring tag).
+  It names a token in revoke requests and the share-panel UI, and live connections record
+  it so revocation can disconnect them. The server never holds plaintext tokens, so it
+  needs this handle; the hash could serve, but a separate ID keeps hashes out of URLs/UI.
+- **Owner's local copy of share links:** the owner's client keeps created share tokens
+  locally so "Copy link" works later (same risk profile as the owner token).
 
-Open questions (to be resolved before acceptance):
-1. Sharing model: B (proposed) or A?
-2. View-only links: include (proposed) or edit-only?
-3. Recovery: recovery link (proposed), manual export, or defer?
+Resolved questions:
+1. Sharing model: **B**.
+2. View-only links: **included**.
+3. Recovery: **deferred**. The workspace/recovery-link design (a secret workspace ID whose
+   small `Y.Doc` mirrors the note list and tokens, saved as a recovery link) is the
+   preferred future option; it would implement ADR 002's additive option B.
 
 ## Consequences
 
@@ -99,8 +103,9 @@ Open questions (to be resolved before acceptance):
 - Tokens stored in browser storage are as safe as the device; anyone with the device or
   the recovery link has full access.
 - Deletion tombstones are permanent server records (small).
-- Adopting the workspace doc amends ADR 002's decision (note list no longer purely local);
-  ADR 002 should be updated to reference this ADR.
+- With recovery deferred, a wiped browser loses its note list **and its owner tokens**.
+  The server backup (ADR 005) then protects collaborators' access, not the owner's;
+  ownership of such notes cannot be reclaimed. ADR 002 is unchanged for now.
 - The server can still read all note content; only end-to-end encryption (M6) changes that.
 - Tokens are bearer capabilities: a forwarded link grants the same access until revoked.
 - Tokens are 256-bit random values, so a fast hash (SHA-256) suffices; slow password
