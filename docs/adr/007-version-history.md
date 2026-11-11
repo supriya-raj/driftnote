@@ -1,6 +1,6 @@
 # ADR 007: Version history
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-11)
 - **Date:** 2026-11-11
 
 ## Context
@@ -53,7 +53,7 @@ The server periodically stores `Y.encodeStateAsUpdate(doc)` as a timestamped blo
 
 ## Decision
 
-Proposed: **B**.
+**B**.
 
 - **Capture:** the server snapshots a note at most every 10 minutes while it is being
   edited, and when the last connection leaves its room. No snapshot if unchanged since the
@@ -69,12 +69,11 @@ Proposed: **B**.
   live note's content via BlockNote, so it syncs and is undoable. The server records a
   `pre-restore` snapshot first, so a restore can itself be reverted.
 
-Open questions (to be resolved before acceptance):
-1. Whole versions (B, proposed) or attributed coloured diffs (A)? Proposed: B, with diffs
-   as a possible later exploration.
-2. Named versions ("Save version", kept forever)? Proposed: include.
-3. Who can see history? Proposed: `owner` and `edit` can view and restore; `view` cannot
-   see history (old versions may contain deliberately deleted content).
+Resolved questions (owner delegated to the recommendations):
+1. Whole-version preview and restore (B); attributed coloured diffs are a possible later
+   exploration.
+2. Named versions ("Save version", kept forever) are included.
+3. `owner` and `edit` can view and restore history; `view` cannot see history.
 
 ## Consequences
 

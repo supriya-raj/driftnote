@@ -31,7 +31,7 @@ Open to change. Record any change as an ADR.
 - **Editor:** BlockNote (built on TipTap/ProseMirror) with its built-in Yjs collaboration (see ADR 003)
 - **CRDT:** Yjs
 - **Local persistence:** `y-indexeddb` first. Later: SQLite-WASM on OPFS for the note index and search.
-- **Sync server:** Node + WebSocket (Hocuspocus or `y-websocket`). Later: try Cloudflare Durable Objects.
+- **Sync server:** Node + WebSocket, hand-built on the `y-protocols` wire format (see ADR 005). Later: try Cloudflare Durable Objects.
 - **Testing:** Vitest (unit), Playwright (e2e, using multiple browser contexts to simulate users and offline)
 - **CI:** GitHub Actions running lint, typecheck, unit tests, and e2e
 
