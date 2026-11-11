@@ -1,6 +1,6 @@
 # ADR 004: Local storage
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-11)
 - **Date:** 2026-11-11
 
 ## Context
@@ -49,7 +49,7 @@ synced exists only in this browser.
 
 ## Decision
 
-Proposed: **A** now; **B** as the M6 exploration for the note index and search.
+**A** now; **B** as the M6 exploration for the note index and search.
 
 - Notes: one `y-indexeddb` persistence per note doc, keyed by note ID.
 - Note list: an IndexedDB object store accessed through `idb`, updated when a note's
@@ -58,9 +58,9 @@ Proposed: **A** now; **B** as the M6 exploration for the note index and search.
 - On startup, call `navigator.storage.persist()`; if not granted, show a non-blocking
   warning explaining the eviction risk.
 
-Open question (to be resolved before acceptance):
-1. Which component is hand-built for learning (ADR 001)? Proposed: the sync server, which
-   keeps this ADR at option A. If storage is chosen instead, switch to option C.
+Resolved question:
+1. Hand-built component (ADR 001): the sync server is hand-built for learning; storage
+   uses the ready-made `y-indexeddb` (option A).
 
 ## Consequences
 
