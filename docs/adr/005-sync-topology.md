@@ -1,6 +1,6 @@
 # ADR 005: Sync and server topology
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-11)
 - **Date:** 2026-11-11
 
 ## Context
@@ -50,7 +50,7 @@ relays updates and awareness, and keeps its own copy of each note (an always-on 
 
 ## Decision
 
-Proposed: **A**.
+**A**.
 
 - **Server:** Node + `ws` + `y-protocols` (sync and awareness message encoding). Hand-written:
   connection handling, rooms keyed by note ID, sync step 1/2 and update relay, awareness
@@ -61,11 +61,9 @@ Proposed: **A**.
   `BroadcastChannel`), alongside `y-indexeddb` (ADR 004).
 - **Hocuspocus:** optional comparison exercise, recorded in the learning log.
 
-Open questions (to be resolved before acceptance):
-1. Do unshared notes sync to the server? Proposed: **no**; a note syncs only once shared.
-   Mitigate local-loss risk with persistent-storage request (ADR 004) and an export feature.
-2. Long term: keep the hand-built server or switch to Hocuspocus? Proposed: **keep it**;
-   Hocuspocus only as a comparison.
+Resolved questions:
+1. Unshared notes **do** sync to the server (server acts as a backup for every note).
+2. The hand-built server is kept long term; Hocuspocus is only a comparison exercise.
 
 ## Consequences
 
@@ -77,4 +75,10 @@ Open questions (to be resolved before acceptance):
   for unit tests (e.g. two in-memory clients through the server).
 - Connection status (offline / syncing / synced, brief feature 6) is derived from the
   provider's connection and sync events.
-- If unshared notes do not sync, an unshared note's only copy is in the browser.
+- Because every note syncs, the server stores all notes in plaintext, including private
+  ones. This raises the value of the end-to-end encryption exploration (M6).
+- A server backup is only recoverable if the user can find their note IDs again. With no
+  accounts and a local-only note list (ADR 002), a wiped browser loses the list. A recovery
+  mechanism is addressed in the sharing and identity ADR (006).
+- Stock `WebsocketProvider` uses one WebSocket per `Y.Doc`. Backing up many notes needs a
+  background sync queue (a few notes at a time) rather than one open socket per note.
