@@ -53,12 +53,29 @@ Proposed: **B**.
   `edit`, `view`. Server stores `sha256(token)`, role, note ID, created/revoked timestamps.
 - **Links:** `/n/<noteId>#t=<token>`. The client moves the token from the fragment into
   local storage on open, then presents it when connecting.
-- **Server checks** the token on WebSocket connect; rejects unknown or revoked tokens;
-  for `view` connections, relays outgoing updates and awareness but drops incoming document
-  updates.
-- **Owner registration:** first sync of a new note registers its owner-token hash
-  (first-writer-wins for an unknown note ID).
-- **Revocation:** owner can revoke a share token ("reset link").
+- **Token transport:** browser WebSocket APIs cannot set custom headers, so the token is
+  sent as a query parameter (supported by the stock `WebsocketProvider`). The server and
+  any proxy must never log query strings. A first-message auth handshake with a custom
+  provider is a possible later upgrade.
+- **Connect-time check** (before any sync): reject if the note has a deletion tombstone;
+  look up `(noteId, sha256(token))` among non-revoked tokens; if not found and the note ID
+  is unknown, register the token as `owner` (first-writer-wins; safe because the ID is
+  generated randomly by the creator and not yet disclosed); otherwise reject. The
+  connection is then tagged with `{ noteId, tokenId, role }`.
+- **Per-message enforcement** by role: sync step 1 (state vector request) and awareness
+  are allowed for all roles; sync step 2 and update messages (incoming document changes)
+  are applied only for `owner`/`edit` and dropped for `view`. Blocking step 2 is
+  essential, not just live updates. Outgoing messages are unrestricted.
+- **Client read-only mode** for `view` is a UX courtesy only; the server filter is the
+  security boundary.
+- **Token management over HTTP**, authorised by `Authorization: Bearer <ownerToken>`:
+  `POST /notes/:id/tokens` (server generates a share token, stores its hash, returns the
+  plaintext once), `DELETE /notes/:id/tokens/:tokenId` (revoke), `DELETE /notes/:id`
+  (delete note). The owner token is client-generated because notes are created offline.
+- **Link handling:** the client reads `#t=` on open, stores the token locally, and removes
+  the fragment from the address bar (`history.replaceState`).
+- **Revocation:** sets `revoked_at` and immediately disconnects live connections using
+  that token. "Reset link" = revoke + create a new token.
 - **Delete:** owner deletes for everyone. The server deletes the note data and keeps a
   **deletion tombstone** so stale offline replicas cannot resurrect it; clients show
   "deleted by owner". Non-owners remove the note from their own list only.
@@ -85,3 +102,10 @@ Open questions (to be resolved before acceptance):
 - Adopting the workspace doc amends ADR 002's decision (note list no longer purely local);
   ADR 002 should be updated to reference this ADR.
 - The server can still read all note content; only end-to-end encryption (M6) changes that.
+- Tokens are bearer capabilities: a forwarded link grants the same access until revoked.
+- Tokens are 256-bit random values, so a fast hash (SHA-256) suffices; slow password
+  hashes (bcrypt/argon2) are unnecessary. Lookup is by hash, avoiding timing-sensitive
+  string comparison.
+- Requires HTTPS/WSS everywhere outside local development.
+- A viewer who tampers with their client can diverge their own local copy; this never
+  reaches the server or other users.
