@@ -1,6 +1,6 @@
 # ADR 002: Document model
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-11)
 - **Date:** 2026-11-11
 
 ## Context
@@ -47,7 +47,7 @@ an ordinary local table derived from the note docs on this device.
 
 ## Decision
 
-Proposed: **C**.
+**C** ("for now": revisit if multi-device sync becomes a goal).
 
 - One `Y.Doc` per note, containing:
   - `content`: a `Y.XmlFragment` bound to the editor (rich text).
@@ -58,10 +58,11 @@ Proposed: **C**.
   SQLite-WASM) updated whenever a note doc's `meta` changes, and rebuildable from the
   note docs.
 
-Open questions (to be resolved before acceptance):
-1. Deleting a note shared with you: remove from my list only, or delete for everyone?
-   (Proposed: remove from my list only.)
-2. Is multi-device sync of the note list a requirement? (If yes, reconsider option B.)
+Resolved questions:
+1. Multi-device sync of the note list: not a requirement for now. If it becomes one,
+   add an index doc (option B); this is additive.
+2. Deleting a note shared with you (my list only vs. everyone): deferred to the sharing
+   and permissions ADR. Working default until then: remove from my list only.
 
 ## Consequences
 
