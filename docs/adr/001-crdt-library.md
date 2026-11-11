@@ -1,6 +1,6 @@
 # ADR 001: CRDT library
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-11)
 - **Date:** 2026-11-11
 
 ## Context
@@ -54,7 +54,7 @@ version checkout.
 
 ## Decision
 
-Proposed: **Yjs**. It is the only option where editor (TipTap), local persistence
+**Yjs**. It is the only option where editor (TipTap), local persistence
 (`y-indexeddb`), sync (Hocuspocus / `y-websocket`) and presence (awareness) integrate out of
 the box, letting the project focus on understanding the mechanisms rather than writing glue.
 
@@ -67,3 +67,6 @@ the box, letting the project focus on understanding the mechanisms rather than w
 - Server and client must both use Yjs-compatible libraries (JS `yjs`, or `y-crdt`/Yrs ports).
 - Optional learning follow-up: a small Automerge spike to compare models, recorded in the
   learning log.
+- Integration posture: prefer the ready-made Yjs ecosystem pieces (TipTap Collaboration,
+  `y-indexeddb`, Hocuspocus), and deliberately hand-build one piece for learning (decided
+  in the relevant later ADR).
