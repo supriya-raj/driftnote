@@ -190,6 +190,7 @@ IndexedDB "driftnote" database
     role,            -- this browser's role for the note
     token,           -- this browser's token for the note (owner token if creator)
     syncedAt         -- last time the server confirmed it is up to date
+    unsynced         -- local changes not yet acknowledged → "not backed up yet" marker
     INDEX updatedAt  -- for "most recent first"
   shareLinks (key: tokenId)                 -- only on the owner's browser
     tokenId, noteId, role, token, createdAt -- so "Copy link" works later
@@ -479,8 +480,8 @@ local changes) → `synced` (the server's `ack` covers every local change).
 
 ## 11. Open items
 
-- **Background sync of unopened notes:** build now, or defer until recovery is built?
-  (Pending decision; affects ADR 005.)
+- **Background sync of unopened notes:** deferred until recovery is built (ADR 005
+  amendment). Notes sync while open; the note list marks notes not yet backed up.
 - `ack` message encoding: designed in M2.
 - To verify during implementation: tab-to-tab sync while offline; how the editor handles
   unknown block types from newer app versions; offline simulation of WebSockets in e2e

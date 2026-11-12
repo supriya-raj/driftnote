@@ -99,3 +99,13 @@ on it could claim success while offline edits are not yet safe.
   in M2.
 - This flag also tells the app which notes have unsynced changes (used by ADR 006's
   stranded-edits handling and any background sync).
+
+## Amendment (2026-11-12): background sync deferred
+
+The background sync queue (syncing notes that are not open) is **deferred until recovery
+(ADR 006) is built**, because without recovery the owner cannot use the backup of unopened
+notes anyway. Until then:
+
+- A note syncs whenever it is open while online.
+- The note list shows a **"not backed up yet"** marker on any note whose local changes the
+  server has not acknowledged (using the `ack` mechanism above).
