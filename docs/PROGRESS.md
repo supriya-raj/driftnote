@@ -4,7 +4,7 @@
 **Phase 0: Setup (M0).** Execution plan approved 2026-11-12.
 
 ## Next action
-**T04**: web skeleton (Vite + React) + Playwright, e2e smoke test first.
+**T05**: ESLint (type-checked) + Prettier; `lint`, `format:check`, `check` scripts.
 
 ## Task status
 
@@ -13,7 +13,7 @@
 | 0 | T01 | Workspace root | done |
 | 0 | T02 | Strict TypeScript + shared package | done |
 | 0 | T03 | Server skeleton + Vitest | done |
-| 0 | T04 | Web skeleton + Playwright | todo |
+| 0 | T04 | Web skeleton + Playwright | done |
 | 0 | T05 | Lint and format | todo |
 | 0 | T06 | CI | todo |
 | 0 | T07 | README stub + learning log | todo |
@@ -108,3 +108,8 @@ T03 done: `apps/sync-server` (`startServer({ port })` on `node:http`, `GET /heal
 with `tsx`); root `vitest.config.ts` with `unit` and `integration` projects; scripts
 `test`, `test:unit`, `test:int`. pnpm blocks dependency install scripts; only `esbuild` is
 allowed (`allowBuilds` in `pnpm-workspace.yaml`).
+T04 done: `apps/web` (Vite 8 + React 19; `tsconfig.json` for browser code,
+`tsconfig.node.json` for configs and e2e). Playwright 1.65 builds the app, serves it with
+`vite preview` on 4173 and starts the sync server on 4100; projects chromium/firefox/webkit
+(only Chromium is installed locally so far). Root `pnpm e2e` / `pnpm e2e:all` forward
+extra args (e.g. `--grep @M0`).

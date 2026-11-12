@@ -12,7 +12,9 @@
     "typecheck": "pnpm -r --parallel typecheck",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "test:int": "vitest run --project integration"
+    "test:int": "vitest run --project integration",
+    "e2e": "pnpm --filter @driftnote/web e2e",
+    "e2e:all": "pnpm --filter @driftnote/web e2e:all"
   },
   "devDependencies": {
     "typescript": "~6.0.3",
