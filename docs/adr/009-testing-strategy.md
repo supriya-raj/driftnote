@@ -59,3 +59,26 @@ have direct tests.
   flaky e2e failures.
 - The DOM sync-state attribute becomes a small public testing contract the UI must keep.
 - WebKit coverage catches Safari-specific storage and service-worker issues.
+
+## Amendment (2026-11-12): integration- and e2e-first balance
+
+The owner prefers few unit tests and more integration and e2e coverage, with TDD throughout.
+
+- **Server integration tests (Vitest, real server in-process, real WebSocket clients, no
+  browser)** are the main layer for server behaviour: role x message filter (all
+  combinations), connect-time decisions and close codes, token rules, revocation, room
+  load/unload races, save ordering, `ack` after durable save, tombstones, snapshots,
+  limits, and no tokens in logs or the database. CRDT convergence property tests run through
+  the real server here.
+- **Playwright e2e** covers everything user-visible, including each milestone's
+  "done when" check. Client-side behaviour (persistence, note list, offline shell, status
+  indicator) is tested here rather than with client unit tests.
+- **Unit tests only** for pure logic the other layers cannot reasonably reach: the snapshot
+  retention policy (needs months of simulated time) and the `ack` coverage check (edge
+  cases such as deletes-only changes).
+- **TDD loop:** write the test, run it and show it failing, implement, re-run green,
+  refactor, commit test and code together. Each milestone starts with its "done when" e2e
+  test marked expected-to-fail, enabled when the milestone completes.
+- **Trade-off accepted:** slower red/green loops and harder diagnosis than unit-heavy TDD.
+- Library-behaviour questions are answered by time-boxed spikes (no TDD; findings logged,
+  code discarded).

@@ -46,3 +46,11 @@ M0-M3 can be developed and tested entirely locally.
 - Backups contain deleted notes until rotated out (see ADR 011).
 - A restart drops live connections; clients reconnect automatically, and CRDT sync makes
   this safe.
+
+## Amendment (2026-11-12): no deployment planned
+
+The owner does not intend to deploy in the near future. All milestones run locally; the
+deploy work (container, host, backups, production headers checks) is removed from the
+execution plan and revisited only if sharing with real users becomes a goal. Design rules
+that keep deployment possible later (single origin, single instance, configuration via
+environment) still apply. Security headers are still set and tested locally (ADR 011).

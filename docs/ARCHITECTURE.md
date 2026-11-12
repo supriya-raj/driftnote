@@ -502,6 +502,6 @@ local changes) → `synced` (the server's `ack` covers every local change).
 | [007](adr/007-version-history.md) | Version history | Server full-copy snapshots; forward restore; named versions | Accepted |
 | [008](adr/008-toolchain-and-monorepo.md) | Toolchain | pnpm monorepo, strict TS, React + Vite, offline app shell | Accepted |
 | [009](adr/009-testing-strategy.md) | Testing | Unit, CRDT property tests, server integration, e2e | Accepted |
-| [010](adr/010-deployment-and-hosting.md) | Deployment | Local first; then one container + disk, single origin | Accepted |
+| [010](adr/010-deployment-and-hosting.md) | Deployment | Local only for now; single-origin design keeps deployment possible later | Accepted |
 | [011](adr/011-security-and-privacy.md) | Security and privacy | Baseline hardening; E2EE later | Accepted |
 | [012](adr/012-schema-evolution.md) | Schema evolution | Additive-only changes + version gates | Accepted |
