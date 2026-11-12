@@ -1,0 +1,10 @@
+{
+  // Root-level tooling files only; each package has its own tsconfig.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": ["vitest.config.ts", "eslint.config.js"]
+}

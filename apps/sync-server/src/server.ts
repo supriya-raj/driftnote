@@ -45,7 +45,10 @@ export async function startServer(options: ServerOptions): Promise<RunningServer
     port: address.port,
     close: () =>
       new Promise<void>((resolve, reject) => {
-        http.close((err) => (err ? reject(err) : resolve()));
+        http.close((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
       }),
   };
 }

@@ -4,7 +4,7 @@
 **Phase 0: Setup (M0).** Execution plan approved 2026-11-12.
 
 ## Next action
-**T05**: ESLint (type-checked) + Prettier; `lint`, `format:check`, `check` scripts.
+**T06**: GitHub Actions CI (lint, format, typecheck, test, e2e Chromium; nightly all browsers).
 
 ## Task status
 
@@ -14,7 +14,7 @@
 | 0 | T02 | Strict TypeScript + shared package | done |
 | 0 | T03 | Server skeleton + Vitest | done |
 | 0 | T04 | Web skeleton + Playwright | done |
-| 0 | T05 | Lint and format | todo |
+| 0 | T05 | Lint and format | done |
 | 0 | T06 | CI | todo |
 | 0 | T07 | README stub + learning log | todo |
 | 1 | T10 | M1 acceptance test | todo |
@@ -113,3 +113,8 @@ T04 done: `apps/web` (Vite 8 + React 19; `tsconfig.json` for browser code,
 `vite preview` on 4173 and starts the sync server on 4100; projects chromium/firefox/webkit
 (only Chromium is installed locally so far). Root `pnpm e2e` / `pnpm e2e:all` forward
 extra args (e.g. `--grep @M0`).
+T05 done: ESLint 10 flat config (`strictTypeChecked` + `stylisticTypeChecked`, React hooks
+rules for web code, Prettier compat); Prettier (width 100; Markdown excluded so docs are
+not reformatted). Root `tsconfig.json` covers root config files; `apps/web/tsconfig.json`
+is a solution file referencing `tsconfig.app.json` and `tsconfig.node.json`. `pnpm check`
+runs everything and is green.

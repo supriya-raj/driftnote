@@ -15,7 +15,7 @@ describe("GET /healthz", () => {
     const res = await fetch(`http://127.0.0.1:${server.port}/healthz`);
 
     expect(res.status).toBe(200);
-    expect((await res.json()) as unknown).toEqual({ status: "ok" });
+    expect(await res.json()).toEqual({ status: "ok" });
   });
 
   it("responds 404 for unknown paths", async () => {

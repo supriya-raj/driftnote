@@ -1,10 +1,5 @@
 {
-  // Browser app code: DOM types, no Node types.
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "lib": ["ES2024", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
-    "jsx": "react-jsx"
-  },
-  "include": ["src"]
+  // Solution file: points editors and the linter at the two real configs.
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
 }

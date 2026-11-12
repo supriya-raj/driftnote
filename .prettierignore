@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+**/dist
+**/playwright-report
+**/test-results
+**/coverage
+# Docs are hand-wrapped prose; don't reformat them.
+*.md

@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const WEB_PORT = 4173;
 const SERVER_PORT = 4100;
-const isCI = Boolean(process.env["CI"]);
+const isCI = Boolean(process.env.CI);
 
 /**
  * E2E tests run against a production build of the web app plus the real sync server
