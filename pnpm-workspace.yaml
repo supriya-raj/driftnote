@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Supply-chain safety (ADR 011): don't install package versions published
+# less than 3 days ago (value in minutes).
+minimumReleaseAge: 4320

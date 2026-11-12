@@ -1,16 +1,16 @@
 # Progress
 
 ## Current phase
-**Phase 0: Setup (M0).** Execution plan approved 2026-11-12. No tasks started yet.
+**Phase 0: Setup (M0).** Execution plan approved 2026-11-12.
 
 ## Next action
-Owner OKs the Phase 0 plan; then start **T01** (workspace root).
+**T02**: strict TypeScript base config + `packages/shared`.
 
 ## Task status
 
 | Phase | ID | Task | Status |
 |---|---|---|---|
-| 0 | T01 | Workspace root | todo |
+| 0 | T01 | Workspace root | done |
 | 0 | T02 | Strict TypeScript + shared package | todo |
 | 0 | T03 | Server skeleton + Vitest | todo |
 | 0 | T04 | Web skeleton + Playwright | todo |
@@ -82,6 +82,7 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   planned (ADR 010).
 - 2026-11-12: Plan decisions: owner does not write tests; M3 stability gate is 5
   consecutive passes. Execution plan approved ("modify as we go").
+- 2026-11-12: Toolchain pinned: Node 26.13.1 (current Active LTS), pnpm 12.18.0.
 
 ## Open questions
 - To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
@@ -94,5 +95,7 @@ None.
 
 ## Handoff note
 Architecture discussion finished: 12 accepted ADRs and `docs/ARCHITECTURE.md`. Execution
-plan approved; the owner expects the plan to be adjusted as we go. Phase 0 plan presented,
-awaiting the owner's OK before T01.
+plan approved; the owner expects the plan to be adjusted as we go. Phase 0 approved.
+T01 done: Node 26.13.1 (`.nvmrc`; run `nvm use` in the repo, the machine default stays
+Node 18) and pnpm 12.18.0 (installed globally with npm). `minimumReleaseAge` (3 days) is
+set in `pnpm-workspace.yaml`.

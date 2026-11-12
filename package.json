@@ -1,0 +1,11 @@
+{
+  "name": "driftnote",
+  "private": true,
+  "description": "Local-first, real-time collaborative notes",
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=26.13.1 <27",
+    "pnpm": ">=12.18.0 <13"
+  },
+  "scripts": {}
+}
