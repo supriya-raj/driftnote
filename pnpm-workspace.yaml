@@ -5,3 +5,8 @@ packages:
 # Supply-chain safety (ADR 011): don't install package versions published
 # less than 3 days ago (value in minutes).
 minimumReleaseAge: 4320
+
+# Dependencies allowed to run install scripts (everything else is blocked).
+# esbuild: installs its platform-specific binary (used by tsx and Vite).
+allowBuilds:
+  esbuild: true

@@ -4,7 +4,7 @@
 **Phase 0: Setup (M0).** Execution plan approved 2026-11-12.
 
 ## Next action
-**T03**: sync-server skeleton with `/healthz` + Vitest (first TDD task).
+**T04**: web skeleton (Vite + React) + Playwright, e2e smoke test first.
 
 ## Task status
 
@@ -12,7 +12,7 @@
 |---|---|---|---|
 | 0 | T01 | Workspace root | done |
 | 0 | T02 | Strict TypeScript + shared package | done |
-| 0 | T03 | Server skeleton + Vitest | todo |
+| 0 | T03 | Server skeleton + Vitest | done |
 | 0 | T04 | Web skeleton + Playwright | todo |
 | 0 | T05 | Lint and format | todo |
 | 0 | T06 | CI | todo |
@@ -104,3 +104,7 @@ set in `pnpm-workspace.yaml`.
 T02 done: `tsconfig.base.json` (strict + extra flags, `noEmit`, Bundler resolution);
 `packages/shared` exports TS source and has no DOM/Node types (verified: using `document`
 or `process` there fails `pnpm typecheck`).
+T03 done: `apps/sync-server` (`startServer({ port })` on `node:http`, `GET /healthz`, run
+with `tsx`); root `vitest.config.ts` with `unit` and `integration` projects; scripts
+`test`, `test:unit`, `test:int`. pnpm blocks dependency install scripts; only `esbuild` is
+allowed (`allowBuilds` in `pnpm-workspace.yaml`).
