@@ -1,6 +1,6 @@
 # ADR 008: Toolchain, monorepo and offline app shell
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-12)
 - **Date:** 2026-11-11
 
 ## Context
@@ -45,8 +45,6 @@ requests from a cache).
 - **C. No service worker.** Cons: the app does not load offline; fails M1.
 
 ## Decision
-
-Proposed:
 
 - **pnpm workspaces**, no task runner initially (add Turborepo only if builds get slow).
   Layout: `apps/web`, `apps/sync-server`, `packages/shared`.

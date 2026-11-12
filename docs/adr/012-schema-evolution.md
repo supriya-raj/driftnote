@@ -1,6 +1,6 @@
 # ADR 012: Schema evolution
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-12)
 - **Date:** 2026-11-11
 
 ## Context
@@ -38,7 +38,7 @@ drop it when editing, which could delete a collaborator's content.
 
 ## Decision
 
-Proposed: **A** by default, **C** as the escape hatch for unavoidable breaking changes.
+**A** by default, **C** as the escape hatch for unavoidable breaking changes.
 
 - **Document schema version:** `meta.schemaVersion` (integer) records the newest schema
   feature used in a note. A client whose supported version is lower opens the note

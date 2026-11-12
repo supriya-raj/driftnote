@@ -1,6 +1,6 @@
 # ADR 010: Deployment and hosting
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-12)
 - **Date:** 2026-11-11
 
 ## Context
@@ -25,8 +25,6 @@ M0-M3 can be developed and tested entirely locally.
   Cons: only up while your laptop is; not a real deployment.
 
 ## Decision
-
-Proposed:
 
 - **M0-M3:** local only. Use a tunnel (D) for ad-hoc demos with a friend.
 - **From M2/M3 when needed:** **A**, a single container with a persistent volume. The

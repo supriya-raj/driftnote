@@ -239,12 +239,18 @@ WebSockets. The server and any proxy must never log query strings.)
 Server → client messages are never restricted. "Apply" means: merge into the room's doc,
 forward to everyone else in the room, schedule a save.
 
+**Save acknowledgement (server → client, custom message):** after a client's changes are
+durably saved, the server sends `ack` with its state vector **and** delete set (state
+vectors count inserts only). The client shows **synced** only when this covers all of its
+own changes, and records `syncedAt`. No pull-before-push ordering is required: both sides
+send concurrently and CRDT merging is order-independent.
+
 **Close codes** (app-defined)
 
 | Code | Meaning | Client reaction |
 |---|---|---|
-| 4401 | Invalid or revoked token | Show "link no longer valid" |
-| 4410 | Note deleted | Show "deleted by owner"; remove from list |
+| 4401 | Invalid or revoked token | Show "link no longer valid"; if unsynced changes exist, offer "Save my version as a new note" |
+| 4410 | Note deleted | Show "deleted by owner"; if unsynced changes exist, offer "Save my version as a new note"; then remove from list |
 | 4413 | Message or document too large | Show error; stop retrying |
 | 4426 | Protocol too old | Prompt "new version available, reload" |
 | 4429 | Rate limited | Back off, then reconnect |
@@ -435,8 +441,8 @@ server is a peer, not a referee.
   version history is the mitigation.
 
 **Connection status** (shown in the UI and exposed in the DOM for tests):
-`offline` (no socket) → `syncing` (connected, catching up or sending local changes) →
-`synced` (connected and up to date).
+`offline` (no socket) → `syncing` (connected, but the server has not yet acknowledged all
+local changes) → `synced` (the server's `ack` covers every local change).
 
 **Failure modes**
 | Failure | Effect | Recovery |
@@ -464,7 +470,8 @@ server is a peer, not a referee.
 - Revocation takes effect immediately (live sockets closed).
 - Tombstones prevent deleted notes from coming back.
 - Strict Content Security Policy; only `http`, `https` and `mailto` links rendered.
-- Size and rate limits per connection.
+- Size and rate limits: document size is the real cap; the message limit is at least the
+  document limit so large offline catch-ups are accepted.
 - HTTPS/WSS everywhere outside local development.
 - **Known trade-off:** the server can read every note (all notes sync in plaintext).
 
@@ -474,7 +481,7 @@ server is a peer, not a referee.
 
 - **Background sync of unopened notes:** build now, or defer until recovery is built?
   (Pending decision; affects ADR 005.)
-- **ADRs 008-012** are still Proposed.
+- `ack` message encoding: designed in M2.
 - To verify during implementation: tab-to-tab sync while offline; how the editor handles
   unknown block types from newer app versions; offline simulation of WebSockets in e2e
   tests; whether the built-in Node SQLite module is stable enough.
@@ -492,8 +499,8 @@ server is a peer, not a referee.
 | [005](adr/005-sync-topology.md) | Sync topology | Hand-built WebSocket relay server; all notes sync | Accepted |
 | [006](adr/006-sharing-and-identity.md) | Sharing and identity | Hashed role tokens (owner/edit/view); recovery deferred | Accepted |
 | [007](adr/007-version-history.md) | Version history | Server full-copy snapshots; forward restore; named versions | Accepted |
-| [008](adr/008-toolchain-and-monorepo.md) | Toolchain | pnpm monorepo, strict TS, React + Vite, offline app shell | Proposed |
-| [009](adr/009-testing-strategy.md) | Testing | Unit, CRDT property tests, server integration, e2e | Proposed |
-| [010](adr/010-deployment-and-hosting.md) | Deployment | Local first; then one container + disk, single origin | Proposed |
-| [011](adr/011-security-and-privacy.md) | Security and privacy | Baseline hardening; E2EE later | Proposed |
-| [012](adr/012-schema-evolution.md) | Schema evolution | Additive-only changes + version gates | Proposed |
+| [008](adr/008-toolchain-and-monorepo.md) | Toolchain | pnpm monorepo, strict TS, React + Vite, offline app shell | Accepted |
+| [009](adr/009-testing-strategy.md) | Testing | Unit, CRDT property tests, server integration, e2e | Accepted |
+| [010](adr/010-deployment-and-hosting.md) | Deployment | Local first; then one container + disk, single origin | Accepted |
+| [011](adr/011-security-and-privacy.md) | Security and privacy | Baseline hardening; E2EE later | Accepted |
+| [012](adr/012-schema-evolution.md) | Schema evolution | Additive-only changes + version gates | Accepted |

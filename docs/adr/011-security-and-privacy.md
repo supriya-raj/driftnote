@@ -1,6 +1,6 @@
 # ADR 011: Security and privacy baseline
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-12)
 - **Date:** 2026-11-11
 
 ## Context
@@ -32,7 +32,7 @@ Every note syncs to the server in plaintext (ADR 005). Access is by bearer token
 
 ## Decision
 
-Proposed: **A**.
+**A**.
 
 - **Transport:** HTTPS/WSS everywhere outside local development; HSTS.
 - **Content Security Policy:** `script-src 'self'`, no inline scripts, no third-party
@@ -40,9 +40,12 @@ Proposed: **A**.
   defence.
 - **Link sanitisation:** link hrefs in documents are rendered only for `http:`, `https:`
   and `mailto:` schemes, because collaborators control document content.
-- **Server limits:** maximum WebSocket message size, maximum stored document size,
+- **Server limits:** maximum stored document size, maximum WebSocket message size,
   per-connection update rate limits, and per-IP connection limits; violations close the
-  connection.
+  connection. A reconnect catch-up (sync step 2) is sent as one message and can be as large
+  as the whole document, so the **message limit must be at least the document limit** or
+  legitimate offline work would be rejected. The real abuse limit is document size.
+  Starting values: document 20 MB, message 24 MB; tuned during M5.
 - **Headers:** `Referrer-Policy: no-referrer` (paths contain note IDs).
 - **Logging:** never log query strings or `Authorization` headers; short retention for
   operational logs; no analytics or third-party scripts.

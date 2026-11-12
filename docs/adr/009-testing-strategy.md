@@ -1,6 +1,6 @@
 # ADR 009: Testing strategy
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-11-12)
 - **Date:** 2026-11-11
 
 ## Context
@@ -22,7 +22,7 @@ hand-built server (ADR 005) and its authorisation rules (ADR 006) are security-c
 
 ## Decision
 
-Proposed: **B**.
+**B**.
 
 | Layer | Tool | What it covers |
 |---|---|---|

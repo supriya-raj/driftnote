@@ -82,3 +82,20 @@ Resolved questions:
   mechanism is addressed in the sharing and identity ADR (006).
 - Stock `WebsocketProvider` uses one WebSocket per `Y.Doc`. Backing up many notes needs a
   background sync queue (a few notes at a time) rather than one open socket per note.
+
+## Amendment (2026-11-12): save acknowledgements
+
+The standard Yjs protocol tells a client when it has *received* the server's state, but
+never confirms that the server has *stored* the client's changes. A "synced" indicator based
+on it could claim success while offline edits are not yet safe.
+
+- After a client's changes are **durably saved** to SQLite, the server sends that client a
+  custom `ack` message containing a compact summary of everything the server holds: its
+  **state vector and delete set** (state vectors count inserts only, so deletions must be
+  covered separately).
+- The client is **synced** only when the server's summary covers all of its own changes;
+  it then records `syncedAt` in the note list. Otherwise it shows **syncing**.
+- The stock client allows registering extra message handlers; exact encoding is designed
+  in M2.
+- This flag also tells the app which notes have unsynced changes (used by ADR 006's
+  stranded-edits handling and any background sync).

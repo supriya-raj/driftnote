@@ -114,3 +114,17 @@ Resolved questions:
 - Requires HTTPS/WSS everywhere outside local development.
 - A viewer who tampers with their client can diverge their own local copy; this never
   reaches the server or other users.
+
+## Amendment (2026-11-12)
+
+**Rejected: one-time WebSocket tickets.** Exchanging the token over HTTPS for a
+single-use, 30-second ticket would keep long-lived tokens out of WebSocket URLs and logs.
+Rejected by the owner: it complicates reconnect handling (the stock client reuses one URL
+for every reconnect), and the risk is handled by never logging query strings. Tokens stay
+in the query string.
+
+**Stranded offline edits.** If the server refuses a note on reconnect (4401 revoked link,
+4410 deleted) and the local copy has changes the server never acknowledged (ADR 005
+amendment), the app does not discard them. It offers **"Save my version as a new note"**:
+a new note ID and owner token are created and the current content is copied into a fresh
+doc. The refused local copy stays until the user dismisses it.
