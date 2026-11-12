@@ -1,0 +1,13 @@
+{
+  "name": "@driftnote/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Environment-neutral code shared by the web app and the sync server",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

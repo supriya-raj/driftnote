@@ -1,0 +1,9 @@
+{
+  // No DOM and no Node types: code here must run in both the browser and Node.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2024"],
+    "types": []
+  },
+  "include": ["src"]
+}

@@ -4,14 +4,14 @@
 **Phase 0: Setup (M0).** Execution plan approved 2026-11-12.
 
 ## Next action
-**T02**: strict TypeScript base config + `packages/shared`.
+**T03**: sync-server skeleton with `/healthz` + Vitest (first TDD task).
 
 ## Task status
 
 | Phase | ID | Task | Status |
 |---|---|---|---|
 | 0 | T01 | Workspace root | done |
-| 0 | T02 | Strict TypeScript + shared package | todo |
+| 0 | T02 | Strict TypeScript + shared package | done |
 | 0 | T03 | Server skeleton + Vitest | todo |
 | 0 | T04 | Web skeleton + Playwright | todo |
 | 0 | T05 | Lint and format | todo |
@@ -83,6 +83,8 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - 2026-11-12: Plan decisions: owner does not write tests; M3 stability gate is 5
   consecutive passes. Execution plan approved ("modify as we go").
 - 2026-11-12: Toolchain pinned: Node 26.13.1 (current Active LTS), pnpm 12.18.0.
+- 2026-11-12: TypeScript pinned to ~6.0.3, not 7.x: typescript-eslint (type-checked lint,
+  ADR 008) supports only `<6.1`. Revisit when it supports TypeScript 7.
 
 ## Open questions
 - To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
@@ -99,3 +101,6 @@ plan approved; the owner expects the plan to be adjusted as we go. Phase 0 appro
 T01 done: Node 26.13.1 (`.nvmrc`; run `nvm use` in the repo, the machine default stays
 Node 18) and pnpm 12.18.0 (installed globally with npm). `minimumReleaseAge` (3 days) is
 set in `pnpm-workspace.yaml`.
+T02 done: `tsconfig.base.json` (strict + extra flags, `noEmit`, Bundler resolution);
+`packages/shared` exports TS source and has no DOM/Node types (verified: using `document`
+or `process` there fails `pnpm typecheck`).
