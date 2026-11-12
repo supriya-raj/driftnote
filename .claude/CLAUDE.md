@@ -12,10 +12,6 @@ significant silently.
 Design reference: `docs/ARCHITECTURE.md` (system design) and `docs/adr/` (accepted
 decisions with their reasons).
 
-## Current status
-Planning is complete. **Implementation starts only after I approve
-`docs/EXECUTION_PLAN.md`.** Remove this section once approved.
-
 ## Implementation protocol
 **Session start, every session, in order:**
 1. Read `docs/PROGRESS.md`. It is the only memory between sessions. Never rely on chat

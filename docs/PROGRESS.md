@@ -1,11 +1,10 @@
 # Progress
 
 ## Current phase
-**Planning complete. Execution plan awaiting owner approval.** No implementation has started.
+**Phase 0: Setup (M0).** Execution plan approved 2026-11-12. No tasks started yet.
 
 ## Next action
-Owner reviews and approves `docs/EXECUTION_PLAN.md`. Then: state the Phase 0 plan in 5-10
-lines, get an OK, and start **T01**.
+Owner OKs the Phase 0 plan; then start **T01** (workspace root).
 
 ## Task status
 
@@ -82,7 +81,7 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   (ADR 011); integration/e2e-first TDD with minimal unit tests (ADR 009); no deployment
   planned (ADR 010).
 - 2026-11-12: Plan decisions: owner does not write tests; M3 stability gate is 5
-  consecutive passes.
+  consecutive passes. Execution plan approved ("modify as we go").
 
 ## Open questions
 - To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
@@ -94,6 +93,6 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 None.
 
 ## Handoff note
-Architecture discussion finished: 12 accepted ADRs and `docs/ARCHITECTURE.md`. The
-execution plan is written but **not yet approved**: do not start T01 until the owner
-approves it.
+Architecture discussion finished: 12 accepted ADRs and `docs/ARCHITECTURE.md`. Execution
+plan approved; the owner expects the plan to be adjusted as we go. Phase 0 plan presented,
+awaiting the owner's OK before T01.
