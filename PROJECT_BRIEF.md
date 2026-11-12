@@ -23,17 +23,19 @@ This is a learning project. I want to understand how local-first software works 
 6. A visible connection status (offline / syncing / synced).
 7. Version history with the ability to restore a previous version.
 
-## Proposed stack
-Open to change. Record any change as an ADR.
+## Stack
+Decided in `docs/adr/` (reasons and trade-offs there); system design in `docs/ARCHITECTURE.md`.
 
-- **Monorepo:** pnpm workspaces with `apps/web`, `apps/sync-server`, `packages/shared`
-- **Frontend:** React + TypeScript + Vite
-- **Editor:** BlockNote (built on TipTap/ProseMirror) with its built-in Yjs collaboration (see ADR 003)
-- **CRDT:** Yjs
-- **Local persistence:** `y-indexeddb` first. Later: SQLite-WASM on OPFS for the note index and search.
-- **Sync server:** Node + WebSocket, hand-built on the `y-protocols` wire format (see ADR 005). Later: try Cloudflare Durable Objects.
-- **Testing:** Vitest (unit), Playwright (e2e, using multiple browser contexts to simulate users and offline)
-- **CI:** GitHub Actions running lint, typecheck, unit tests, and e2e
+- **Monorepo:** pnpm workspaces: `apps/web`, `apps/sync-server`, `packages/shared`
+- **Frontend:** React + TypeScript (strict) + Vite, offline app shell via a service worker
+- **Editor:** BlockNote (on TipTap/ProseMirror) with Yjs collaboration
+- **CRDT:** Yjs, one document per note
+- **Local persistence:** IndexedDB (`y-indexeddb`)
+- **Sync server:** hand-built Node WebSocket relay (Yjs wire format) with SQLite
+- **Sharing:** links carrying hashed, revocable owner/edit/view tokens
+- **Testing:** Playwright (e2e, multi-user, offline) and Vitest (server integration, minimal unit)
+- **CI:** GitHub Actions
+- **Deployment:** none planned; runs locally
 
 ## Milestones
 
@@ -46,15 +48,15 @@ BlockNote editor, note list, create/rename/delete, persisted via `y-indexeddb`. 
 **Done when:** a Playwright test creates a note, goes offline, reloads, and sees the note intact.
 
 ### M2: Real-time collaboration
-Sync server, shared note URLs, two browsers editing the same note, presence cursors with names and colors.
+Hand-built sync server, share links (edit/view), two browsers editing the same note, presence cursors with names and colors.
 **Done when:** a Playwright test with two contexts shows both edits merged in both views.
 
 ### M3: Offline conflict handling
 Offline edits from two users merge correctly on reconnect. Add a connection status indicator, plus tests that force offline, edit on both sides, then reconnect.
-**Done when:** concurrent offline edits to the same paragraph are both preserved, and the test is stable in CI.
+**Done when:** concurrent offline edits to the same paragraph are both preserved, and the test is stable in CI (5 consecutive passes).
 
 ### M4: Version history
-Periodic snapshots (Yjs snapshots or stored updates), a history panel, preview, and restore.
+Server-side periodic snapshots, named versions, a history panel, preview, and restore.
 **Done when:** a user can restore a note to an earlier state, and the restore syncs to collaborators.
 
 ### M5: Accessibility and performance
@@ -65,13 +67,9 @@ Keyboard navigation and screen-reader labels for the editor UI. Run an accessibi
 - Port the sync server to Cloudflare Durable Objects.
 - Try end-to-end encryption, so the server only relays ciphertext.
 
-## Architecture Decision Records
-Write a short ADR in `docs/adr/NNN-title.md` for each significant choice (context, options considered, decision, consequences). Likely topics:
-- Yjs vs. Automerge
-- Hosted sync server vs. peer-to-peer
-- IndexedDB vs. OPFS/SQLite for local storage
-- How snapshots and version history are stored
-- Sharing and permission model
+### Deferred (not scheduled)
+Recovery link and multi-device note list, background sync of unopened notes, coloured
+"who changed what" diffs, image and file blocks, deployment.
 
 ## README
 - One-sentence description and a short GIF of two windows editing, including an offline-to-online merge
