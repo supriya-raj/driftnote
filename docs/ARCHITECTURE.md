@@ -287,6 +287,35 @@ last connection leaves
    └─▶ save → snapshot (if changed) → keep in memory briefly → unload
 ```
 
+**Implementation shape:** plain Node + the `ws` library; rooms are a `Map<noteId, Room>` in
+memory. No framework, Redis or broker.
+
+```
+Room
+  doc                    server's copy of the note
+  awareness              presence for this note
+  conns                  Map<socket, { noteId, tokenId, role, awarenessIds }>
+  dirty                  changed since last save
+  changedSinceSnapshot   changed since last snapshot
+  saveTimer, unloadTimer
+loading: Map<noteId, Promise<Room>>   one load per note, shared by concurrent joiners
+```
+
+**Message routing:** decode the message type → apply the role filter → apply to `room.doc`.
+Forwarding is driven by the doc's update event: each change is sent to every connection in
+the room except the one it came from (the change's origin). Awareness works the same way.
+
+**Robustness rules**
+- **Load race:** concurrent first joins share one load via `loading`, so a note never has
+  two in-memory copies.
+- **Unload race:** a join during the unload grace period cancels the unload.
+- **Dead connections:** ping every ~30 s; terminate sockets that do not answer and remove
+  the presence entries they owned (prevents ghost cursors).
+- **Messages that arrive during room load** are queued until the room is ready.
+- **Slow consumers:** close sockets whose outgoing buffer keeps growing.
+- **No locks:** Node handles one message at a time, so room state is never mutated
+  concurrently within the process.
+
 ### 7.2 Durability: why losing a few seconds is acceptable
 
 Saves are debounced, so a server crash can lose the last few seconds of changes **on the
@@ -295,7 +324,25 @@ the state-vector exchange shows the server is behind, and clients send the missi
 again automatically. The CRDT makes this safe: duplicates and reordering are harmless. The
 only loss is if the server *and* every client that held the change disappear together.
 
-### 7.3 Version history
+### 7.3 Save correctness (is `notes.state` fresh?)
+
+```
+room.dirty = false                       // clear BEFORE encoding: no lost-change gap
+blob = encodeStateAsUpdate(room.doc)     // the whole merged doc, never a diff
+UPDATE notes SET state = blob ...        // one transaction
+```
+- The blob contains everything the server has received at that instant; later changes set
+  `dirty` again and schedule another save.
+- **Saves cannot be reordered:** single-threaded event loop + a synchronous SQLite API, so
+  encode-and-write is one uninterrupted step. (An async driver would need a save queue or
+  version checks.)
+- **Single process** (ADR 010) means no competing writers. Scale-out path: merge with the
+  stored row inside the write transaction, which is safe because CRDT merges are
+  idempotent.
+- The server may lag behind offline clients; that is expected. Merges only add
+  information, so it never moves backwards, and reconnecting clients catch it up.
+
+### 7.4 Version history
 
 - **Capture:** the server snapshots the room's doc (full copy) at most every 10 minutes while
   it is edited, and when the room empties.
@@ -374,6 +421,18 @@ client replaces live content with the old version's content → syncs to everyon
 **Consistency model:** *strong eventual consistency*. Any two copies that have received the
 same changes are identical, in any order. There is no global ordering and no locking; the
 server is a peer, not a referee.
+
+**What "no merge conflicts" does and does not mean**
+- Every character is an item with a permanent ID `(clientId, clock)` and anchors to its
+  neighbours' IDs. Inserts reference anchors, not positions; deletes mark items as
+  tombstones; ties are broken deterministically. So every copy converges and new text is
+  never discarded.
+- Converged is not the same as sensible: two people replacing the same word yield both
+  words (`dogcow`); a delete racing an edit can leave fragments.
+- Formatting and other properties are last-writer-wins with a deterministic tie-break.
+- **Known data-loss case:** if one person deletes a whole block (e.g. a paragraph) while
+  another types inside it, the typed text is lost with its deleted parent. Needs an M3 test;
+  version history is the mitigation.
 
 **Connection status** (shown in the UI and exposed in the DOM for tests):
 `offline` (no socket) → `syncing` (connected, catching up or sending local changes) →
