@@ -8,12 +8,14 @@ import { useSyncExternalStore } from "react";
 import type { OpenNote } from "../notes/noteDoc";
 import { isSafeLinkHref, openLinkSafely } from "../notes/safeLinks";
 import { noteSchema } from "../notes/schema";
+import { useNoteEditable } from "../notes/useNoteEditable";
 
 // Placeholder identity until presence (T33) asks for a name and colour.
 const LOCAL_USER = { name: "Me", color: "#3b82f6" };
 
 export function NoteEditor({ note }: { note: OpenNote }) {
   const localState = useSyncExternalStore(note.subscribe, () => note.localState);
+  const editable = useNoteEditable(note);
   const editor = useCreateBlockNote(
     {
       schema: noteSchema,
@@ -26,7 +28,7 @@ export function NoteEditor({ note }: { note: OpenNote }) {
 
   return (
     <div data-testid="note-editor" data-local-state={localState}>
-      <BlockNoteView editor={editor} />
+      <BlockNoteView editor={editor} editable={editable} />
     </div>
   );
 }

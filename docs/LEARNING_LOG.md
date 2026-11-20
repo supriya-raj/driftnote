@@ -5,6 +5,19 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-20: A flaky suite and its real cause (T17)
+
+**Passes alone, fails together: look for shared load.** Offline tests passed on their own
+and failed in the full run. A 4x repeat took 39 minutes with Chrome failing to *launch*:
+the machine was heavily loaded (load average 72 on 8 cores, largely other apps). The test
+suite made it worse: every fresh context installed the service worker and downloaded the
+whole ~5 MB precache from one `vite preview` process. Fix the cause, not the timeout:
+service workers are blocked except in the tests about offline. 105/105 in 33 s after.
+
+**Read-only is a safety feature.** A newer app may store content this one cannot
+represent; editing could silently drop it. Old clients look, but do not touch
+(`meta.schemaVersion`), and they also skip their own automatic `updatedAt` write.
+
 ## 2026-11-20: Safe links (T16)
 
 **The dangerous link is the one you did not type.** Editors filter links on paste and

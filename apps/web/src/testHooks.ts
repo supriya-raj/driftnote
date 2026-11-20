@@ -15,6 +15,10 @@ const TEST_REMOTE_ORIGIN = Symbol("test-remote");
 export function installTestHooks(): void {
   window.__driftnote = {
     clearNoteList: deleteNoteList,
+    setSchemaVersion(version) {
+      const note = getCurrentNote();
+      note.doc.transact(() => note.meta.set("schemaVersion", version), TEST_REMOTE_ORIGIN);
+    },
     injectLink(text, href) {
       const note = getCurrentNote();
       // BlockNote's ProseMirror tree: blockGroup > blockContainer > paragraph > text.

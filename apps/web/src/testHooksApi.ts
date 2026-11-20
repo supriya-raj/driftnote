@@ -11,4 +11,6 @@ export interface DriftnoteTestHooks {
    * directly, the way an update from another replica would arrive.
    */
   injectLink(text: string, href: string): void;
+  /** Sets the open note's `meta.schemaVersion`, as a newer app version would. */
+  setSchemaVersion(version: number): void;
 }

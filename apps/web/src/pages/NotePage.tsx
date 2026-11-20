@@ -7,6 +7,7 @@ import { keepListEntryInSync } from "../notes/noteList";
 import { DeleteNoteButton } from "./DeleteNoteButton";
 import { NoteEditor } from "./NoteEditor";
 import { NoteTitle } from "./NoteTitle";
+import { SchemaGateNotice } from "./SchemaGateNotice";
 
 type PageState = { kind: "loading" } | { kind: "missing" } | { kind: "open"; note: OpenNote };
 
@@ -62,6 +63,7 @@ export function NotePage() {
       )}
       {state.kind === "open" && (
         <article key={state.note.noteId}>
+          <SchemaGateNotice note={state.note} />
           <NoteTitle note={state.note} />
           <DeleteNoteButton note={state.note} />
           <NoteEditor note={state.note} />

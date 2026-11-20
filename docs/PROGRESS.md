@@ -4,7 +4,7 @@
 **Phase 1: Single-user, offline-first editor (M1): in progress.** Phase 1 plan approved 2026-11-20.
 
 ## Next action
-T17: schema gate (`meta.schemaVersion` above supported → read-only with a message).
+T18: close M1 (install Playwright Firefox and WebKit; `pnpm e2e:all --grep @M1` green).
 
 ## Task status
 
@@ -23,7 +23,7 @@ T17: schema gate (`meta.schemaVersion` above supported → read-only with a mess
 | 1 | T14 | Offline app shell | done |
 | 1 | T15 | Persistent storage | done |
 | 1 | T16 | Safe links | done |
-| 1 | T17 | Schema gate | todo |
+| 1 | T17 | Schema gate | done |
 | 1 | T18 | Close M1 | todo |
 | 2 | S20 | Spike: tabs + unknown blocks | todo |
 | 2 | T21 | M2 acceptance test | todo |
@@ -104,6 +104,8 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   test hooks (`src/testHooks.ts`); normal builds drop them.
 - 2026-11-20: `@M1-done` switched to a normal test in T14 (the task that made it pass),
   not T18; execution plan's rule updated: switch in whichever task makes it pass.
+- 2026-11-20: e2e tests block service workers by default (`serviceWorkers: "block"`);
+  offline tests opt in. Each context otherwise downloaded the ~5 MB precache.
 
 ## Open questions
 - To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
@@ -113,7 +115,8 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - The architecture puts this browser's token and role in the note-list store, but that
   store is a droppable cache. Decide in T32: keep tokens in a separate, never-dropped store.
 - Bundle size: main JS chunk is 1.4 MB (440 kB gzipped), mostly BlockNote, plus ~25 locale
-  chunks. The PWA precache is 4.9 MB (39 files), ~3 MB of it unused BlockNote locale chunks;
+  chunks. The PWA precache is 4.9 MB (39 files), ~3 MB of it emoji names in 25 languages (loaded lazily by the
+  emoji picker);
   optimise in M5 (T63).
 
 ## In-progress notes
@@ -181,3 +184,8 @@ BlockNote as `links.isValidLink` / `links.onClick`; `NoteEditor.css` shows empti
 plain text. Test hook `injectLink(text, href)` edits the Yjs fragment directly (like a
 remote update); `src/notes/currentNote.ts` tracks the open note for hooks. Each defence
 verified by removing it (ftp link kept its address; clicks opened two tabs).
+T17 done: `OpenNote.isEditable` (`meta.schemaVersion` ≤ `NOTE_SCHEMA_VERSION`);
+`useNoteEditable` hook; editor `editable={false}`, title `readOnly`, `SchemaGateNotice`
+(`role="alert"`); the `updatedAt` refresh never writes to a gated note; delete still
+allowed. Test hook `setSchemaVersion(v)`. Tests `e2e/schema-gate.spec.ts`. `editorBody`
+helper now targets `.bn-editor` (BlockNote's trailing-block widget is contenteditable too).

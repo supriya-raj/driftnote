@@ -19,8 +19,9 @@ export async function createNote(
   return page.url();
 }
 
+/** The editable surface (not BlockNote's helper widgets, which are contenteditable too). */
 export function editorBody(page: Page) {
-  return page.getByTestId("note-editor").locator("[contenteditable]");
+  return page.getByTestId("note-editor").locator(".bn-editor");
 }
 
 /** Waits until every change is in IndexedDB, so a reload cannot race the save. */

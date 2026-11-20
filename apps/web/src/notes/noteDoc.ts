@@ -1,4 +1,4 @@
-import { NOTE_CONTENT_KEY, NOTE_META_KEY } from "@driftnote/shared";
+import { NOTE_CONTENT_KEY, NOTE_META_KEY, NOTE_SCHEMA_VERSION } from "@driftnote/shared";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 
@@ -57,6 +57,14 @@ export class OpenNote {
     return this.state;
   }
 
+  /**
+   * False when the note uses a newer document schema than this app understands
+   * (ADR 012). Such a note is read-only: editing it could damage content we cannot see.
+   */
+  get isEditable(): boolean {
+    return (readMeta(this)?.schemaVersion ?? NOTE_SCHEMA_VERSION) <= NOTE_SCHEMA_VERSION;
+  }
+
   /** For React's `useSyncExternalStore`. */
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
@@ -98,7 +106,7 @@ export class OpenNote {
   private readonly refreshUpdatedAt = (): void => {
     const meta = readMeta(this);
     const now = Date.now();
-    if (!meta || now - meta.updatedAt < UPDATED_AT_RESOLUTION_MS) return;
+    if (!meta || !this.isEditable || now - meta.updatedAt < UPDATED_AT_RESOLUTION_MS) return;
     this.doc.transact(() => this.meta.set("updatedAt", now), UPDATED_AT_ORIGIN);
   };
 
