@@ -13,7 +13,9 @@ doc. Everything in the list is a copy of something in a note.
 
 **Closures hide assignments from TypeScript.** `let flag = false` set inside a callback is
 still seen as `false` afterwards (TypeScript does not know when the callback runs), so the
-linter called the `if (flag)` "always falsy". An object property avoids the false alarm.
+linter called the `if (flag)` "always falsy". An object property avoids the false alarm,
+but not across an `await` (T13): TypeScript keeps a property narrowed after awaiting.
+Reading the flag through a function call (`isCancelled()`) is never narrowed.
 
 **Red step skipped by accident, then repaired.** I wrote T12's code before running its
 tests. Fix: stash the implementation, run the tests (red), restore. For a test whose

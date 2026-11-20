@@ -76,6 +76,13 @@ export class OpenNote {
     });
   }
 
+  /** Deletes this note's IndexedDB database. The note must not be used afterwards. */
+  async deleteLocal(): Promise<void> {
+    this.doc.off("update", this.onUpdate);
+    await this.persistence.clearData();
+    this.doc.destroy();
+  }
+
   async close(): Promise<void> {
     this.doc.off("update", this.onUpdate);
     await this.persistence.destroy();

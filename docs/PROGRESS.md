@@ -4,7 +4,7 @@
 **Phase 1: Single-user, offline-first editor (M1): in progress.** Phase 1 plan approved 2026-11-20.
 
 ## Next action
-T13: local delete (removes note from list and local storage; `/n/:id` shows "not found").
+T14: offline app shell (`vite-plugin-pwa` precache, SPA fallback, update prompt).
 
 ## Task status
 
@@ -19,7 +19,7 @@ T13: local delete (removes note from list and local storage; `/n/:id` shows "not
 | 1 | T10 | M1 acceptance test | done |
 | 1 | T11 | Note docs + local persistence + editor | done |
 | 1 | T12 | Note list cache | done |
-| 1 | T13 | Local delete | todo |
+| 1 | T13 | Local delete | done |
 | 1 | T14 | Offline app shell | todo |
 | 1 | T15 | Persistent storage | todo |
 | 1 | T16 | Safe links | todo |
@@ -160,3 +160,7 @@ T12 done: `src/notes/noteList.ts` (`idb` database `driftnote`, store `notes` wit
 `meta.title`); home page list (`<ul aria-label="Notes">`, "Untitled" fallback). Test hook
 `clearNoteList()`. e2e helpers in `e2e/support/notes.ts`. Tests `e2e/note-list.spec.ts`;
 the rebuild test verified to fail with the rebuild disabled.
+T13 done: "Delete note" → in-page confirm ("Yes, delete" / "Cancel") → removes list entry
+and the note's database (`OpenNote.deleteLocal`). `NotePage` checks the ID shape and that
+the database exists before opening (opening would create it); otherwise "Note not found".
+Tests `e2e/delete.spec.ts`.
