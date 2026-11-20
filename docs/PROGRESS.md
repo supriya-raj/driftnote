@@ -4,7 +4,7 @@
 **Phase 0: Setup (M0).** Execution plan approved 2026-11-12.
 
 ## Next action
-**T06**: GitHub Actions CI (lint, format, typecheck, test, e2e Chromium; nightly all browsers).
+**T06**: owner runs `gh auth refresh -h github.com -s workflow`; then push and confirm the first CI run is green.
 
 ## Task status
 
@@ -15,7 +15,7 @@
 | 0 | T03 | Server skeleton + Vitest | done |
 | 0 | T04 | Web skeleton + Playwright | done |
 | 0 | T05 | Lint and format | done |
-| 0 | T06 | CI | todo |
+| 0 | T06 | CI | in-progress |
 | 0 | T07 | README stub + learning log | todo |
 | 1 | T10 | M1 acceptance test | todo |
 | 1 | T11 | Note docs + local persistence + editor | todo |
@@ -93,7 +93,10 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - Whether built-in `node:sqlite` is stable in the pinned Node version: decided in T23.
 
 ## In-progress notes
-None.
+- **T06 (CI):** `.github/workflows/ci.yml` is committed locally (`1472a3d`) but **not
+  pushed**: GitHub rejects workflow files from a token without the `workflow` scope. The
+  `gh` token has `gist`, `read:org`, `repo`. Remaining: add the scope, push, confirm the run
+  is green, mark T06 done. Local `pnpm check` is green.
 
 ## Handoff note
 Architecture discussion finished: 12 accepted ADRs and `docs/ARCHITECTURE.md`. Execution
