@@ -1,10 +1,11 @@
 # Progress
 
 ## Current phase
-**Phase 1: Single-user, offline-first editor (M1): in progress.** Phase 1 plan approved 2026-11-20.
+**Phase 1: Single-user, offline-first editor (M1): complete** (2026-11-20).
 
 ## Next action
-T18: close M1 (install Playwright Firefox and WebKit; `pnpm e2e:all --grep @M1` green).
+Phase 1 is complete. Next: state the **Phase 2** plan (real-time collaboration, S20 and
+T21-T38) in 5-10 lines and wait for the owner's OK.
 
 ## Task status
 
@@ -24,7 +25,7 @@ T18: close M1 (install Playwright Firefox and WebKit; `pnpm e2e:all --grep @M1` 
 | 1 | T15 | Persistent storage | done |
 | 1 | T16 | Safe links | done |
 | 1 | T17 | Schema gate | done |
-| 1 | T18 | Close M1 | todo |
+| 1 | T18 | Close M1 | done |
 | 2 | S20 | Spike: tabs + unknown blocks | todo |
 | 2 | T21 | M2 acceptance test | todo |
 | 2 | T22 | Single origin | todo |
@@ -189,3 +190,7 @@ T17 done: `OpenNote.isEditable` (`meta.schemaVersion` ≤ `NOTE_SCHEMA_VERSION`)
 (`role="alert"`); the `updatedAt` refresh never writes to a gated note; delete still
 allowed. Test hook `setSchemaVersion(v)`. Tests `e2e/schema-gate.spec.ts`. `editorBody`
 helper now targets `.bn-editor` (BlockNote's trailing-block widget is contenteditable too).
+T18 done: Playwright Firefox and WebKit installed locally. `pnpm e2e:all --grep @M1`: 63/63,
+and 189/189 with `--repeat-each=3`. WebKit fix: storage stubs patch
+`StorageManager.prototype` (WebKit recreated the `navigator.storage` wrapper, dropping
+properties set on it). M1 complete.

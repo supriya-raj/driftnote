@@ -11,8 +11,10 @@ async function stubPersistence(
   await page.addInitScript((a) => {
     const w = window as unknown as { __persistRequested: boolean };
     w.__persistRequested = false;
-    navigator.storage.persisted = () => Promise.resolve(a.alreadyPersisted);
-    navigator.storage.persist = () => {
+    // Patch the prototype, not the `navigator.storage` object: WebKit may recreate that
+    // wrapper object, which drops properties set on it directly.
+    StorageManager.prototype.persisted = () => Promise.resolve(a.alreadyPersisted);
+    StorageManager.prototype.persist = () => {
       w.__persistRequested = true;
       return Promise.resolve(a.grant);
     };

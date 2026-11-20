@@ -5,6 +5,14 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-20: Cross-browser (T18)
+
+**Stub on the prototype, not the instance.** In WebKit, `navigator.storage.persist = fake`
+in an init script "worked" (no error) but the app later saw the native method: the engine
+recreated the JavaScript wrapper object, losing properties set on it. Replacing
+`StorageManager.prototype.persist` survives that. Firefox and Chromium were fine either
+way, which is exactly why the plan runs every milestone in all three engines.
+
 ## 2026-11-20: A flaky suite and its real cause (T17)
 
 **Passes alone, fails together: look for shared load.** Offline tests passed on their own

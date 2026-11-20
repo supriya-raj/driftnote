@@ -3,7 +3,8 @@
 A local-first, real-time collaborative notes app: it works fully offline, syncs when a
 connection returns, and merges concurrent edits without conflicts.
 
-> **Status:** early development (Phase 0: setup). See [`docs/PROGRESS.md`](docs/PROGRESS.md).
+> **Status:** single-user offline-first editor works (M1). Next: real-time collaboration
+> (M2). See [`docs/PROGRESS.md`](docs/PROGRESS.md).
 
 ## Run locally
 
@@ -20,6 +21,7 @@ pnpm dev                 # web app on http://localhost:5173, sync server on :400
 
 ```sh
 pnpm --filter @driftnote/web exec playwright install chromium   # once, for e2e tests
+pnpm --filter @driftnote/web exec playwright install firefox webkit   # once, for e2e:all
 pnpm check   # lint, format, typecheck, unit + integration tests, e2e (Chromium)
 ```
 
