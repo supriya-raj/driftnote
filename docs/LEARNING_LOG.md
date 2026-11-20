@@ -5,6 +5,20 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-20: Offline app shell (T14)
+
+**A service worker only helps from the second load.** The first visit downloads the app
+and installs the worker, which caches every built file ("precache"). Tests therefore wait
+until the worker controls the page before going offline. `clientsClaim` lets the first
+install take over open pages without a reload.
+
+**SPA fallback.** Offline, `/n/<id>` is not a file in the cache. The worker answers any
+in-app navigation with the cached `index.html` and the client-side router shows the page.
+Server paths (`/api`, `/sync`) are excluded so the worker never fakes them.
+
+**"Expected to fail, but passed" is good news.** The acceptance test went green in T14, so
+`test.fail()` turned the run red on purpose. Switch it to a normal test in that task.
+
 ## 2026-11-20: Note list cache (T12)
 
 **A cache must be rebuildable to be droppable.** Ordering by "last updated" only survives a

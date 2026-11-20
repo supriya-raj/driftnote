@@ -21,7 +21,8 @@ Progress is tracked in `docs/PROGRESS.md`.
   Files: `apps/web/e2e/*.spec.ts`, tagged by milestone in the title (`@M1`, `@M2`, ...).
 - **Unit** (Vitest): only the snapshot retention policy and the `ack` coverage check.
 - Each milestone starts with its **"done when" e2e test marked expected-to-fail**
-  (`test.fail`), switched to a normal test in the milestone's final task.
+  (`test.fail`), switched to a normal test in the milestone's final task, or earlier in
+  whichever task makes it pass (an expected failure that passes turns the run red).
 
 **Spikes** (`S` IDs) answer library-behaviour questions: time-boxed (≤ 2 hours), no TDD,
 findings written to `docs/LEARNING_LOG.md`, spike code deleted (not committed).
@@ -86,7 +87,7 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T15 | Persistent storage | Call `navigator.storage.persist()` at startup; warning banner if refused | e2e: refused → banner visible; granted → no banner (API stubbed) | `pnpm e2e --grep @M1` green |
 | T16 | Safe links | Only `http:`, `https:`, `mailto:` links rendered clickable | e2e: a `javascript:` link is not rendered as a working link | `pnpm e2e --grep @M1` green |
 | T17 | Schema gate | Notes with `meta.schemaVersion` above the app's supported version open read-only with a message | e2e: hook sets a higher version → editor read-only, message shown | `pnpm e2e --grep @M1` green |
-| T18 | Close M1 | `@M1-done` switched to a normal test; Playwright Firefox and WebKit installed locally | none | `pnpm check` green; `pnpm e2e:all --grep @M1` green |
+| T18 | Close M1 | Playwright Firefox and WebKit installed locally (`@M1-done` was switched to a normal test in T14, the task that made it pass) | none | `pnpm check` green; `pnpm e2e:all --grep @M1` green |
 
 ## Phase 2: Real-time collaboration (M2)
 

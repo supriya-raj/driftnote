@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { HomePage } from "./pages/HomePage";
 import { NotePage } from "./pages/NotePage";
+import { UpdatePrompt } from "./UpdatePrompt";
 
 const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
@@ -8,5 +9,10 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <UpdatePrompt />
+      <RouterProvider router={router} />
+    </>
+  );
 }

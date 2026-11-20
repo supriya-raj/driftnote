@@ -1,13 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { waitForOfflineReady } from "./support/offline";
 
 // M1 "done when": a note created in the browser survives going offline and reloading.
-// Expected to fail until the milestone is complete (switched to a normal test in T18).
+// Written as expected-to-fail in T10; switched to a normal test in T14, which made it pass.
 test("@M1-done a note created offline-first survives an offline reload", async ({
   page,
   context,
 }) => {
-  test.fail();
-
   await page.goto("/");
   await page.getByRole("button", { name: "New note" }).click();
 
@@ -18,6 +17,8 @@ test("@M1-done a note created offline-first survives an offline reload", async (
   // Wait until the change is written to IndexedDB, so the reload cannot race the save.
   await expect(editor).toHaveAttribute("data-local-state", "saved");
   const noteUrl = page.url();
+  // The app shell must be cached before the network goes away (one online visit).
+  await waitForOfflineReady(page);
 
   await context.setOffline(true);
   await page.reload();

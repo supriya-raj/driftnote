@@ -3,7 +3,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
+    "types": ["vite/client", "vite-plugin-pwa/react"],
     "jsx": "react-jsx",
     // BlockNote's types do not support this flag (even its default editor type fails to
     // type-check against its own view component). Kept on for server and shared code.

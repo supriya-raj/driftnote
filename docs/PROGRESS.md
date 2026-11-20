@@ -4,7 +4,7 @@
 **Phase 1: Single-user, offline-first editor (M1): in progress.** Phase 1 plan approved 2026-11-20.
 
 ## Next action
-T14: offline app shell (`vite-plugin-pwa` precache, SPA fallback, update prompt).
+T15: persistent storage (`navigator.storage.persist()` at startup, warning banner if refused).
 
 ## Task status
 
@@ -20,7 +20,7 @@ T14: offline app shell (`vite-plugin-pwa` precache, SPA fallback, update prompt)
 | 1 | T11 | Note docs + local persistence + editor | done |
 | 1 | T12 | Note list cache | done |
 | 1 | T13 | Local delete | done |
-| 1 | T14 | Offline app shell | todo |
+| 1 | T14 | Offline app shell | done |
 | 1 | T15 | Persistent storage | todo |
 | 1 | T16 | Safe links | todo |
 | 1 | T17 | Schema gate | todo |
@@ -102,6 +102,8 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   list rebuild; refreshed at most every 10 s of local editing.
 - 2026-11-20: e2e builds use `vite build --mode test`, which installs `window.__driftnote`
   test hooks (`src/testHooks.ts`); normal builds drop them.
+- 2026-11-20: `@M1-done` switched to a normal test in T14 (the task that made it pass),
+  not T18; execution plan's rule updated: switch in whichever task makes it pass.
 
 ## Open questions
 - To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
@@ -111,7 +113,8 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - The architecture puts this browser's token and role in the note-list store, but that
   store is a droppable cache. Decide in T32: keep tokens in a separate, never-dropped store.
 - Bundle size: main JS chunk is 1.4 MB (440 kB gzipped), mostly BlockNote, plus ~25 locale
-  chunks. Check the PWA precache size limit in T14; optimise in M5 (T63).
+  chunks. The PWA precache is 4.9 MB (39 files), ~3 MB of it unused BlockNote locale chunks;
+  optimise in M5 (T63).
 
 ## In-progress notes
 None.
@@ -164,3 +167,8 @@ T13 done: "Delete note" → in-page confirm ("Yes, delete" / "Cancel") → remov
 and the note's database (`OpenNote.deleteLocal`). `NotePage` checks the ID shape and that
 the database exists before opening (opening would create it); otherwise "Note not found".
 Tests `e2e/delete.spec.ts`.
+T14 done: `vite-plugin-pwa` 2 (`registerType: "prompt"`, `clientsClaim`, navigate fallback
+to `/index.html` except `/api/`, `/sync/`, `/healthz`); `src/UpdatePrompt.tsx` ("new
+version" banner with Reload/Later). e2e helper `waitForOfflineReady` (service worker active
+and controlling). Tests `e2e/offline-shell.spec.ts`; `@M1-done` now passes and is a normal
+test.
