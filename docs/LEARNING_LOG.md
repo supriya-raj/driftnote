@@ -5,6 +5,14 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-20: Expected failures and timeouts
+
+**A timeout is not a failure in Playwright.** `test.fail()` expects the status "failed";
+a test that runs out of time ends "timed out", which is reported as unexpected. The first
+M1 acceptance run waited 30 s for a missing button and broke. Fix: `actionTimeout` (10 s)
+turns a stuck click into an ordinary failure, and fails faster with a pointed error.
+In the list reporter an expected failure shows as `✘` with "1 passed" in the summary.
+
 ## 2026-11-20: Phase 0 setup lessons
 
 **GitHub protects workflow files separately.** A token with `repo` scope can push code but

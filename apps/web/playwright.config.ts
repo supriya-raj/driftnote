@@ -17,6 +17,10 @@ export default defineConfig({
   use: {
     baseURL: `http://127.0.0.1:${WEB_PORT}`,
     trace: "retain-on-failure",
+    // A stuck action fails fast with a clear error instead of consuming the whole test
+    // timeout (a timeout is not a "failure", so it would also break `test.fail()`).
+    actionTimeout: 10_000,
+    navigationTimeout: 10_000,
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },

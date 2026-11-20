@@ -1,11 +1,10 @@
 # Progress
 
 ## Current phase
-**Phase 0: Setup (M0): complete.** Execution plan approved 2026-11-12.
+**Phase 1: Single-user, offline-first editor (M1): in progress.** Phase 1 plan approved 2026-11-20.
 
 ## Next action
-Phase 0 is complete. Next: state the **Phase 1** plan (offline-first editor, T10-T18) in
-5-10 lines and wait for the owner's OK.
+T11: note docs + `y-indexeddb` persistence + BlockNote editor at `/n/:noteId` (tests first).
 
 ## Task status
 
@@ -17,7 +16,7 @@ Phase 0 is complete. Next: state the **Phase 1** plan (offline-first editor, T10
 | 0 | T04 | Web skeleton + Playwright | done |
 | 0 | T05 | Lint and format | done |
 | 0 | T07 | README stub + learning log | done |
-| 1 | T10 | M1 acceptance test | todo |
+| 1 | T10 | M1 acceptance test | done |
 | 1 | T11 | Note docs + local persistence + editor | todo |
 | 1 | T12 | Note list cache | todo |
 | 1 | T13 | Local delete | todo |
@@ -91,6 +90,9 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - 2026-11-12: TypeScript pinned to ~6.0.3, not 7.x: typescript-eslint (type-checked lint,
   ADR 008) supports only `<6.1`. Revisit when it supports TypeScript 7.
 
+- 2026-11-20: Phase 1 plan approved. Playwright `actionTimeout`/`navigationTimeout` set to
+  10 s (a timeout is not a failure, so it would break `test.fail()`).
+
 ## Open questions
 - To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
   of unknown block types (S20); Playwright offline emulation of WebSockets (S40).
@@ -127,3 +129,6 @@ CI moved to Phase 6; the unpushed CI commit was dropped from local history with 
 permission (2026-11-20).
 T07 done: `README.md` (run locally in three commands, checks, layout, doc links),
 `docs/LEARNING_LOG.md` (first entries), root `pnpm dev` runs server and web together.
+T10 done: `apps/web/e2e/m1-offline.spec.ts` (`@M1-done`, `test.fail()`). UI contract it
+fixes: a "New note" button on `/`; editor wrapper `data-testid="note-editor"` with
+`data-local-state="saved"` once the change is in IndexedDB; the URL stays the note URL.
