@@ -9,8 +9,19 @@ export type LocalState = "loading" | "saving" | "saved";
 export interface NoteMeta {
   title: string;
   createdAt: number;
+  /** Last local edit, refreshed at most every `UPDATED_AT_RESOLUTION_MS`. */
+  updatedAt: number;
   schemaVersion: number;
 }
+
+/**
+ * `updatedAt` is only for "most recent first" ordering, so it is refreshed at most this
+ * often: rewriting a map key on every keystroke would add Yjs metadata for no benefit.
+ */
+export const UPDATED_AT_RESOLUTION_MS = 10_000;
+
+/** Transaction origin for our own `updatedAt` refresh, so it does not trigger itself. */
+const UPDATED_AT_ORIGIN = Symbol("updatedAt");
 
 /**
  * One open note: its Y.Doc, persisted to IndexedDB by `y-indexeddb` (ADR 004).
@@ -74,6 +85,14 @@ export class OpenNote {
   private readonly onUpdate = (_update: Uint8Array, origin: unknown): void => {
     if (origin === this.persistence) return; // loaded from IndexedDB, nothing new to save
     this.trackSave();
+    if (origin !== UPDATED_AT_ORIGIN) queueMicrotask(this.refreshUpdatedAt);
+  };
+
+  private readonly refreshUpdatedAt = (): void => {
+    const meta = readMeta(this);
+    const now = Date.now();
+    if (!meta || now - meta.updatedAt < UPDATED_AT_RESOLUTION_MS) return;
+    this.doc.transact(() => this.meta.set("updatedAt", now), UPDATED_AT_ORIGIN);
   };
 
   /**
@@ -106,7 +125,38 @@ export class OpenNote {
   }
 }
 
+const NOTE_DB_PREFIX = "driftnote-note-";
+
 /** IndexedDB database name for a note's updates. */
 export function dbName(noteId: string): string {
-  return `driftnote-note-${noteId}`;
+  return `${NOTE_DB_PREFIX}${noteId}`;
+}
+
+/** IDs of all notes stored in this browser, found from their database names. */
+export async function listLocalNoteIds(): Promise<string[]> {
+  const databases = await indexedDB.databases();
+  return databases
+    .map((d) => d.name ?? "")
+    .filter((name) => name.startsWith(NOTE_DB_PREFIX))
+    .map((name) => name.slice(NOTE_DB_PREFIX.length));
+}
+
+export async function noteExistsLocally(noteId: string): Promise<boolean> {
+  return (await listLocalNoteIds()).includes(noteId);
+}
+
+/** The note's metadata, or `null` if it has none (not created yet, or not a note). */
+export function readMeta(note: OpenNote): NoteMeta | null {
+  const { meta } = note;
+  const createdAt = meta.get("createdAt");
+  if (typeof createdAt !== "number") return null;
+  const title = meta.get("title");
+  const updatedAt = meta.get("updatedAt");
+  const schemaVersion = meta.get("schemaVersion");
+  return {
+    title: typeof title === "string" ? title : "",
+    createdAt,
+    updatedAt: typeof updatedAt === "number" ? updatedAt : createdAt,
+    schemaVersion: typeof schemaVersion === "number" ? schemaVersion : 1,
+  };
 }

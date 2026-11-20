@@ -5,6 +5,20 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-20: Note list cache (T12)
+
+**A cache must be rebuildable to be droppable.** Ordering by "last updated" only survives a
+rebuild if the note itself records when it was updated, so `meta.updatedAt` moved into the
+doc. Everything in the list is a copy of something in a note.
+
+**Closures hide assignments from TypeScript.** `let flag = false` set inside a callback is
+still seen as `false` afterwards (TypeScript does not know when the callback runs), so the
+linter called the `if (flag)` "always falsy". An object property avoids the false alarm.
+
+**Red step skipped by accident, then repaired.** I wrote T12's code before running its
+tests. Fix: stash the implementation, run the tests (red), restore. For a test whose
+failure was masked by an earlier step, disable just that feature and re-run.
+
 ## 2026-11-20: Editor and local persistence (T11)
 
 **Knowing when IndexedDB has saved.** `y-indexeddb` writes every update in its own

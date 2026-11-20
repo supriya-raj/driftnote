@@ -4,7 +4,7 @@
 **Phase 1: Single-user, offline-first editor (M1): in progress.** Phase 1 plan approved 2026-11-20.
 
 ## Next action
-T12: note list cache (`idb` store, titles from `meta`, rebuild from docs); tests first.
+T13: local delete (removes note from list and local storage; `/n/:id` shows "not found").
 
 ## Task status
 
@@ -18,7 +18,7 @@ T12: note list cache (`idb` store, titles from `meta`, rebuild from docs); tests
 | 0 | T07 | README stub + learning log | done |
 | 1 | T10 | M1 acceptance test | done |
 | 1 | T11 | Note docs + local persistence + editor | done |
-| 1 | T12 | Note list cache | todo |
+| 1 | T12 | Note list cache | done |
 | 1 | T13 | Local delete | todo |
 | 1 | T14 | Offline app shell | todo |
 | 1 | T15 | Persistent storage | todo |
@@ -97,12 +97,19 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   for server and shared code. ESLint `no-unused-vars` allows `ignoreRestSiblings`.
 - 2026-11-20: BlockNote collaboration via `@blocknote/core/yjs` (Yjs 13 + `y-prosemirror`),
   not `@blocknote/core/y` (Yjs 14 release candidate); `y-indexeddb` needs Yjs 13.
+- 2026-11-20: Owner: implement a whole approved phase without asking between tasks.
+- 2026-11-20: `meta.updatedAt` added (additive, ADR 012) so "most recent first" survives a
+  list rebuild; refreshed at most every 10 s of local editing.
+- 2026-11-20: e2e builds use `vite build --mode test`, which installs `window.__driftnote`
+  test hooks (`src/testHooks.ts`); normal builds drop them.
 
 ## Open questions
 - To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
   of unknown block types (S20); Playwright offline emulation of WebSockets (S40).
 - `ack` message encoding: designed in T27.
 - Whether built-in `node:sqlite` is stable in the pinned Node version: decided in T23.
+- The architecture puts this browser's token and role in the note-list store, but that
+  store is a droppable cache. Decide in T32: keep tokens in a separate, never-dropped store.
 - Bundle size: main JS chunk is 1.4 MB (440 kB gzipped), mostly BlockNote, plus ~25 locale
   chunks. Check the PWA precache size limit in T14; optimise in M5 (T63).
 
@@ -147,3 +154,9 @@ doc constants (`content`, `meta`, `NOTE_SCHEMA_VERSION = 1`). Web: `src/notes/no
 Tests: `e2e/editor.spec.ts` (reload keeps content; two notes separate; no media in slash
 menu, verified to fail when media blocks are restored). `@M1-done` now fails at the
 offline reload (`ERR_INTERNET_DISCONNECTED`), as expected until T14.
+T12 done: `src/notes/noteList.ts` (`idb` database `driftnote`, store `notes` with
+`updatedAt` index; dropped and rebuilt from note databases found via
+`indexedDB.databases()` when new or outdated); title input (`NoteTitle`, bound to
+`meta.title`); home page list (`<ul aria-label="Notes">`, "Untitled" fallback). Test hook
+`clearNoteList()`. e2e helpers in `e2e/support/notes.ts`. Tests `e2e/note-list.spec.ts`;
+the rebuild test verified to fail with the rebuild disabled.
