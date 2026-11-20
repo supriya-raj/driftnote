@@ -4,7 +4,7 @@
 **Phase 1: Single-user, offline-first editor (M1): in progress.** Phase 1 plan approved 2026-11-20.
 
 ## Next action
-T15: persistent storage (`navigator.storage.persist()` at startup, warning banner if refused).
+T16: safe links (only `http:`, `https:`, `mailto:` rendered clickable).
 
 ## Task status
 
@@ -21,7 +21,7 @@ T15: persistent storage (`navigator.storage.persist()` at startup, warning banne
 | 1 | T12 | Note list cache | done |
 | 1 | T13 | Local delete | done |
 | 1 | T14 | Offline app shell | done |
-| 1 | T15 | Persistent storage | todo |
+| 1 | T15 | Persistent storage | done |
 | 1 | T16 | Safe links | todo |
 | 1 | T17 | Schema gate | todo |
 | 1 | T18 | Close M1 | todo |
@@ -172,3 +172,6 @@ to `/index.html` except `/api/`, `/sync/`, `/healthz`); `src/UpdatePrompt.tsx` (
 version" banner with Reload/Later). e2e helper `waitForOfflineReady` (service worker active
 and controlling). Tests `e2e/offline-shell.spec.ts`; `@M1-done` now passes and is a normal
 test.
+T15 done: `src/storage/persistentStorage.ts` (ask once; skip if already persistent) and
+`StorageWarning` (`role="alert"` banner when refused or unsupported). Tests
+`e2e/persistent-storage.spec.ts` stub `navigator.storage` with `addInitScript`.
