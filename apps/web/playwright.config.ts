@@ -22,6 +22,10 @@ export default defineConfig({
     // timeout (a timeout is not a "failure", so it would also break `test.fail()`).
     actionTimeout: 10_000,
     navigationTimeout: 10_000,
+    // Each fresh context would otherwise install the service worker and download the whole
+    // precache (~5 MB). Only the offline tests need it; they opt in with
+    // `test.use({ serviceWorkers: "allow" })`.
+    serviceWorkers: "block",
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },

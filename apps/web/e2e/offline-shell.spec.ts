@@ -2,6 +2,9 @@ import { expect, test } from "@playwright/test";
 import { createNote, listedTitles } from "./support/notes";
 import { waitForOfflineReady } from "./support/offline";
 
+// These tests need the service worker (blocked by default in playwright.config.ts).
+test.use({ serviceWorkers: "allow" });
+
 test("@M1 the home page loads offline after one visit", async ({ page, context }) => {
   await createNote(page, { title: "Offline list" });
   await page.goto("/");
