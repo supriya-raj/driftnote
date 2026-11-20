@@ -11,6 +11,8 @@ const isCI = Boolean(process.env.CI);
  */
 export default defineConfig({
   testDir: "./e2e",
+  // Screenshot capture for visual review runs only via `pnpm shots` (SHOTS=1).
+  ...(process.env.SHOTS ? { grep: /@shots/ } : { grepInvert: /@shots/ }),
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,

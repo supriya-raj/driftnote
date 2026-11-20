@@ -1,7 +1,8 @@
 # Progress
 
 ## Current phase
-**Phase 1: Single-user, offline-first editor (M1): complete** (2026-11-20).
+**Phase 1: Single-user, offline-first editor (M1): complete** (2026-11-20), plus T19
+(visual design baseline).
 
 ## Next action
 Phase 1 is complete. Next: state the **Phase 2** plan (real-time collaboration, S20 and
@@ -26,6 +27,7 @@ T21-T38) in 5-10 lines and wait for the owner's OK.
 | 1 | T16 | Safe links | done |
 | 1 | T17 | Schema gate | done |
 | 1 | T18 | Close M1 | done |
+| 1 | T19 | Visual design baseline | done |
 | 2 | S20 | Spike: tabs + unknown blocks | todo |
 | 2 | T21 | M2 acceptance test | todo |
 | 2 | T22 | Single origin | todo |
@@ -107,6 +109,11 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   not T18; execution plan's rule updated: switch in whichever task makes it pass.
 - 2026-11-20: e2e tests block service workers by default (`serviceWorkers: "block"`);
   offline tests opt in. Each context otherwise downloaded the ~5 MB precache.
+- 2026-11-20: Owner: the UI must be professional and beautiful, now and in every later
+  task. Design system in `docs/DESIGN.md`: plain CSS with design tokens (no CSS framework),
+  light/dark from the OS, Inter, inline SVG icons, two-pane layout; `pnpm shots` for
+  visual review. ESLint `no-confusing-void-expression` allows arrow shorthand
+  (`onClick={() => setOpen(false)}`).
 
 ## Open questions
 - To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
@@ -194,3 +201,10 @@ T18 done: Playwright Firefox and WebKit installed locally. `pnpm e2e:all --grep 
 and 189/189 with `--repeat-each=3`. WebKit fix: storage stubs patch
 `StorageManager.prototype` (WebKit recreated the `navigator.storage` wrapper, dropping
 properties set on it). M1 complete.
+T19 done (owner request after M1): `src/styles/tokens.css` + `base.css`; `AppShell`
+(sidebar + content, one pane under 768px), `Sidebar` (brand h1, New note, live note list
+via `subscribeToNoteList`, relative times, storage notice), `EmptyState`, restyled note
+page (sticky toolbar with `SaveStatus` and delete popover, 40px title, BlockNote themed via
+its CSS variables, heading scale 28/22/19px), `UpdatePrompt` toast, logo + favicon.
+`HomePage.tsx` removed (its parts moved into the shell). `pnpm shots` →
+`apps/web/screenshots/` (git-ignored). All e2e unchanged and green in 3 browsers.

@@ -44,4 +44,7 @@ next action, decisions, open questions, handoff note) and commit it with the wor
 
 ## Code style
 - Small, reviewable steps.
+- UI must look professional and beautiful in every task: follow `docs/DESIGN.md` (tokens,
+  components, light/dark, phone width) and review `pnpm shots` screenshots before a UI task
+  is done.
 - Boring, well-typed code: TypeScript strict mode, no `any` without a comment.

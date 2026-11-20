@@ -1,0 +1,146 @@
+.note-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.note-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: var(--toolbar-height);
+  padding: 0 var(--space-4);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+/* The list is always visible beside the note on wide screens, so no back link there. */
+.note-back {
+  margin-left: calc(-1 * var(--space-2));
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .note-back {
+    visibility: hidden;
+  }
+}
+
+.note-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+/*
+ * The writing column. BlockNote reserves 54px on each side for its block handles; the title
+ * and notices use the same inset so their text lines up with the editor's.
+ */
+.note-content {
+  --editor-inset: 54px;
+
+  width: 100%;
+  max-width: calc(var(--content-width) + 2 * var(--editor-inset));
+  margin: 0 auto;
+  padding: var(--space-6) 0 30vh;
+}
+
+.note-notice {
+  margin: 0 var(--editor-inset) var(--space-5);
+}
+
+@media (max-width: 767px) {
+  .note-content {
+    --editor-inset: 24px;
+
+    padding-top: var(--space-4);
+  }
+}
+
+.note-missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin: auto;
+  padding: var(--space-7) var(--space-5);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.note-missing h2 {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.note-missing .btn {
+  margin-top: var(--space-2);
+  text-decoration: none;
+}
+
+.note-missing-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: var(--space-1);
+  border-radius: 16px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 var(--space-2);
+  color: var(--text-faint);
+  font-size: var(--text-sm);
+  user-select: none;
+}
+
+.save-status[data-state="saved"] svg {
+  color: var(--success);
+}
+
+.save-status-dot {
+  width: 6px;
+  height: 6px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.note-title {
+  display: block;
+  width: calc(100% - 2 * var(--editor-inset));
+  margin: 0 var(--editor-inset) var(--space-3);
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: var(--text-title);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.note-title::placeholder {
+  color: var(--text-faint);
+}
+
+.note-title:focus-visible {
+  box-shadow: none;
+}
+
+@media (max-width: 767px) {
+  .note-title {
+    font-size: 30px;
+  }
+}

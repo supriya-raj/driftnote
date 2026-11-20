@@ -22,3 +22,6 @@ blob-report/
 *.sqlite
 *.sqlite-*
 data/
+
+# Visual review captures (pnpm shots)
+apps/web/screenshots/

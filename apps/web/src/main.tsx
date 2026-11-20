@@ -1,3 +1,6 @@
+import "@blocknote/core/fonts/inter.css";
+import "./styles/tokens.css";
+import "./styles/base.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";

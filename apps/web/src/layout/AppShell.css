@@ -1,0 +1,24 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  height: 100%;
+}
+
+.app-main {
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--surface);
+}
+
+/* Phone and small tablet: one pane at a time. */
+@media (max-width: 767px) {
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell[data-view="list"] .app-main,
+  .app-shell[data-view="note"] .sidebar {
+    display: none;
+  }
+}

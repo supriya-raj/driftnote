@@ -7,16 +7,13 @@ export function NoteTitle({ note }: { note: OpenNote }) {
   const title = useSyncExternalStore(
     (onChange) => {
       note.meta.observe(onChange);
-      return () => {
-        note.meta.unobserve(onChange);
-      };
+      return () => note.meta.unobserve(onChange);
     },
     () => {
       const value = note.meta.get("title");
       return typeof value === "string" ? value : "";
     },
   );
-
   const editable = useNoteEditable(note);
 
   return (

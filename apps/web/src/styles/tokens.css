@@ -1,0 +1,113 @@
+/*
+ * Design tokens (docs/DESIGN.md). Every colour, radius, shadow and spacing value in the
+ * app comes from here, so light and dark themes are one switch.
+ */
+:root {
+  color-scheme: light;
+
+  /* Neutrals: slightly warm greys, so the page reads like paper rather than a dashboard. */
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --surface-sunken: #f4f2ee;
+  --surface-hover: #efece7;
+  --surface-active: #e8e4dd;
+  --border: #e7e3dc;
+  --border-strong: #d6d0c6;
+
+  --text: #1f1d1a;
+  --text-muted: #6b665e;
+  --text-faint: #9a948a;
+
+  /* Accent: a deep sea teal ("drift"). */
+  --accent: #0f6e7a;
+  --accent-hover: #0b5a64;
+  --accent-soft: #e2f1f2;
+  --accent-text: #0b5a64;
+  --on-accent: #ffffff;
+
+  --danger: #b4232c;
+  --danger-hover: #961c24;
+  --danger-soft: #fbe9ea;
+
+  --warning-soft: #fdf3dc;
+  --warning-border: #f0d9a0;
+  --warning-text: #6e4b00;
+
+  --info-soft: #e7f0fb;
+  --info-border: #c4d8f2;
+  --info-text: #1d4a7a;
+
+  --success: #2f855a;
+
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+  --shadow-sm: 0 1px 2px rgb(31 29 26 / 6%);
+  --shadow-md: 0 4px 16px rgb(31 29 26 / 8%), 0 1px 3px rgb(31 29 26 / 6%);
+  --shadow-lg: 0 12px 40px rgb(31 29 26 / 14%), 0 2px 6px rgb(31 29 26 / 8%);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-title: 40px;
+
+  --sidebar-width: 288px;
+  --content-width: 760px;
+  --toolbar-height: 52px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #161514;
+    --surface: #1d1c1a;
+    --surface-sunken: #191817;
+    --surface-hover: #262422;
+    --surface-active: #2e2c29;
+    --border: #2c2a27;
+    --border-strong: #3a3733;
+
+    --text: #ecebe8;
+    --text-muted: #a39e95;
+    --text-faint: #75706a;
+
+    --accent: #4fb8c4;
+    --accent-hover: #6fcad4;
+    --accent-soft: #15302f;
+    --accent-text: #7fd3dc;
+    --on-accent: #0c1d1f;
+
+    --danger: #f0717a;
+    --danger-hover: #f58d94;
+    --danger-soft: #3a1c1e;
+
+    --warning-soft: #2e2615;
+    --warning-border: #4d3f1e;
+    --warning-text: #f0cf86;
+
+    --info-soft: #172435;
+    --info-border: #273c57;
+    --info-text: #a9c8ee;
+
+    --success: #68c08e;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+    --shadow-md: 0 4px 16px rgb(0 0 0 / 35%), 0 1px 3px rgb(0 0 0 / 30%);
+    --shadow-lg: 0 12px 40px rgb(0 0 0 / 50%), 0 2px 6px rgb(0 0 0 / 35%);
+  }
+}

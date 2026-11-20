@@ -9,6 +9,8 @@ Progress is tracked in `docs/PROGRESS.md`.
 2. **Green:** implement the minimum to pass.
 3. **Refactor** with tests green.
 4. Run the task's **Verify** check. A task is done only when it passes.
+   **Any task that adds or changes UI** also follows `docs/DESIGN.md` and is checked
+   visually with `pnpm shots` (light and dark, desktop and phone) before it is done.
 5. Commit tests and code together: `feat(T23): ...` (conventional prefix, task ID). Update
    `docs/PROGRESS.md` in the same commit. Push.
 
@@ -50,6 +52,7 @@ findings written to `docs/LEARNING_LOG.md`, spike code deleted (not committed).
 | `pnpm e2e` | Playwright, Chromium (builds the app first) |
 | `pnpm e2e:all` | Playwright, Chromium + Firefox + WebKit |
 | `pnpm check` | lint + format:check + typecheck + test + e2e |
+| `pnpm shots` | Screenshots of every screen (light/dark, desktop/phone) for visual review |
 
 **App test hooks:** test builds (`MODE=test`) expose `window.__driftnote` helpers (for
 example: inject a raw Yjs update, set `meta.schemaVersion`, clear the note-list store).
@@ -87,6 +90,7 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T15 | Persistent storage | Call `navigator.storage.persist()` at startup; warning banner if refused | e2e: refused → banner visible; granted → no banner (API stubbed) | `pnpm e2e --grep @M1` green |
 | T16 | Safe links | Only `http:`, `https:`, `mailto:` links rendered clickable | e2e: a `javascript:` link is not rendered as a working link | `pnpm e2e --grep @M1` green |
 | T17 | Schema gate | Notes with `meta.schemaVersion` above the app's supported version open read-only with a message | e2e: hook sets a higher version → editor read-only, message shown | `pnpm e2e --grep @M1` green |
+| T19 | Visual design baseline (added 2026-11-20 at the owner's request) | Design tokens, light/dark themes, two-pane app shell with sidebar note list, restyled note page, `docs/DESIGN.md`, `pnpm shots` screenshot capture | existing e2e stay green (they select by role, not style) | `pnpm check` and `pnpm e2e:all --grep @M1` green; screenshots reviewed |
 | T18 | Close M1 | Playwright Firefox and WebKit installed locally (`@M1-done` was switched to a normal test in T14, the task that made it pass) | none | `pnpm check` green; `pnpm e2e:all --grep @M1` green |
 
 ## Phase 2: Real-time collaboration (M2)

@@ -32,6 +32,8 @@ export default defineConfig(
       "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
       // `const { a, ...rest } = obj` is the idiomatic way to drop keys.
       "@typescript-eslint/no-unused-vars": ["error", { ignoreRestSiblings: true }],
+      // Allow `onClick={() => setOpen(false)}`, idiomatic React; other cases still flagged.
+      "@typescript-eslint/no-confusing-void-expression": ["error", { ignoreArrowShorthand: true }],
     },
   },
   {

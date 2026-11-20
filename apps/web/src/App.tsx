@@ -1,20 +1,19 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
-import { HomePage } from "./pages/HomePage";
+import { AppShell } from "./layout/AppShell";
+import { EmptyState } from "./pages/EmptyState";
 import { NotePage } from "./pages/NotePage";
-import { StorageWarning } from "./storage/StorageWarning";
-import { UpdatePrompt } from "./UpdatePrompt";
 
 const router = createBrowserRouter([
-  { path: "/", element: <HomePage /> },
-  { path: "/n/:noteId", element: <NotePage /> },
+  {
+    path: "/",
+    element: <AppShell />,
+    children: [
+      { index: true, element: <EmptyState /> },
+      { path: "n/:noteId", element: <NotePage /> },
+    ],
+  },
 ]);
 
 export function App() {
-  return (
-    <>
-      <UpdatePrompt />
-      <StorageWarning />
-      <RouterProvider router={router} />
-    </>
-  );
+  return <RouterProvider router={router} />;
 }

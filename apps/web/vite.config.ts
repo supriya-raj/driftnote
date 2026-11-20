@@ -17,8 +17,9 @@ export default defineConfig({
         description: "Local-first collaborative notes",
         start_url: "/",
         display: "standalone",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
+        theme_color: "#fbfaf8",
+        background_color: "#fbfaf8",
+        icons: [{ src: "/favicon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,woff2,svg}"],

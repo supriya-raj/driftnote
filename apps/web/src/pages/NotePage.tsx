@@ -1,12 +1,15 @@
 import { isNoteId } from "@driftnote/shared";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
+import { Icon } from "../components/Icon";
 import { setCurrentNote } from "../notes/currentNote";
 import { noteExistsLocally, OpenNote } from "../notes/noteDoc";
 import { keepListEntryInSync } from "../notes/noteList";
 import { DeleteNoteButton } from "./DeleteNoteButton";
 import { NoteEditor } from "./NoteEditor";
+import "./NotePage.css";
 import { NoteTitle } from "./NoteTitle";
+import { SaveStatus } from "./SaveStatus";
 import { SchemaGateNotice } from "./SchemaGateNotice";
 
 type PageState = { kind: "loading" } | { kind: "missing" } | { kind: "open"; note: OpenNote };
@@ -50,25 +53,40 @@ export function NotePage() {
   }, [noteId]);
 
   return (
-    <main>
-      <nav>
-        <Link to="/">All notes</Link>
-      </nav>
-      {state.kind === "loading" && <p>Loading…</p>}
+    <div className="note-page">
+      <div className="note-toolbar">
+        <Link to="/" className="btn btn-ghost note-back">
+          <Icon name="arrowLeft" />
+          All notes
+        </Link>
+        {state.kind === "open" && (
+          <div className="note-toolbar-actions">
+            <SaveStatus note={state.note} />
+            <DeleteNoteButton note={state.note} />
+          </div>
+        )}
+      </div>
+
       {state.kind === "missing" && (
-        <>
-          <h1>Note not found</h1>
-          <p>This note does not exist in this browser. It may have been deleted.</p>
-        </>
+        <div className="note-missing">
+          <div className="note-missing-icon">
+            <Icon name="search" size={24} />
+          </div>
+          <h2>Note not found</h2>
+          <p>This note doesn’t exist in this browser. It may have been deleted.</p>
+          <Link to="/" className="btn btn-secondary">
+            Back to all notes
+          </Link>
+        </div>
       )}
+
       {state.kind === "open" && (
-        <article key={state.note.noteId}>
+        <article className="note-content" key={state.note.noteId}>
           <SchemaGateNotice note={state.note} />
           <NoteTitle note={state.note} />
-          <DeleteNoteButton note={state.note} />
           <NoteEditor note={state.note} />
         </article>
       )}
-    </main>
+    </div>
   );
 }

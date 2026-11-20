@@ -1,7 +1,64 @@
+/*
+ * BlockNote theming: its colours come from CSS variables, mapped here onto our tokens so
+ * the editor matches the app in light and dark mode.
+ */
+.note-editor .bn-container {
+  --bn-font-family: var(--font-sans);
+  --bn-border-radius: var(--radius-md);
+  --bn-colors-editor-background: var(--surface);
+  --bn-colors-editor-text: var(--text);
+  --bn-colors-menu-background: var(--surface);
+  --bn-colors-menu-text: var(--text);
+  --bn-colors-tooltip-background: var(--surface-active);
+  --bn-colors-tooltip-text: var(--text);
+  --bn-colors-hovered-background: var(--surface-hover);
+  --bn-colors-hovered-text: var(--text);
+  --bn-colors-selected-background: var(--accent-soft);
+  --bn-colors-selected-text: var(--accent-text);
+  --bn-colors-disabled-background: var(--surface-sunken);
+  --bn-colors-disabled-text: var(--text-faint);
+  --bn-colors-shadow: var(--border);
+  --bn-colors-border: var(--border);
+  --bn-colors-side-menu: var(--text-faint);
+}
+
+.note-editor .bn-editor {
+  padding-inline: var(--editor-inset);
+  font-size: var(--text-lg);
+  line-height: 1.65;
+}
+
+.note-editor .bn-editor a[data-inline-content-type="link"] {
+  color: var(--accent-text);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
 /* Links whose address failed the safety check render with an empty href (safeLinks.ts).
    Show them as plain text so nothing invites a click. */
-.bn-editor a[data-inline-content-type="link"][href=""] {
+.note-editor .bn-editor a[data-inline-content-type="link"][href=""] {
   color: inherit;
   text-decoration: none;
   cursor: text;
+}
+
+/* The cursor shows focus inside the editor; a ring around the whole page would be noise. */
+.note-editor .bn-editor:focus-visible {
+  box-shadow: none;
+}
+
+/* Heading scale sits below the note title (40px): 28 / 22 / 19px at 16px body text. */
+.note-editor [data-content-type="heading"] {
+  --level: 1.75em;
+
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.note-editor [data-content-type="heading"][data-level="2"] {
+  --level: 1.375em;
+}
+
+.note-editor [data-content-type="heading"][data-level="3"] {
+  --level: 1.2em;
 }

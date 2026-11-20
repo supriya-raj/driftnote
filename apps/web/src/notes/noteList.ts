@@ -23,6 +23,18 @@ const INDEX_DB_VERSION = 1;
 
 let indexPromise: Promise<IDBPDatabase<IndexSchema>> | null = null;
 
+// Tells on-screen lists (the sidebar) to re-read after any change in this tab.
+const changes = new EventTarget();
+
+export function subscribeToNoteList(listener: () => void): () => void {
+  changes.addEventListener("change", listener);
+  return () => changes.removeEventListener("change", listener);
+}
+
+function notifyChange(): void {
+  changes.dispatchEvent(new Event("change"));
+}
+
 function getIndex(): Promise<IDBPDatabase<IndexSchema>> {
   indexPromise ??= openIndex();
   return indexPromise;
@@ -80,11 +92,14 @@ export async function listNotes(): Promise<NoteListEntry[]> {
 
 export async function saveListEntry(note: OpenNote): Promise<void> {
   const entry = entryFromNote(note);
-  if (entry) await (await getIndex()).put("notes", entry);
+  if (!entry) return;
+  await (await getIndex()).put("notes", entry);
+  notifyChange();
 }
 
 export async function removeListEntry(noteId: string): Promise<void> {
   await (await getIndex()).delete("notes", noteId);
+  notifyChange();
 }
 
 /** Keeps the note's list entry in step with its `meta`. Returns an unsubscribe function. */

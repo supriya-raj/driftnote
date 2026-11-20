@@ -5,6 +5,20 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-20: Design baseline (T19)
+
+**Tests that select by role survive a redesign.** The whole UI was restructured (sidebar
+layout, new components) and not one e2e test changed: they find "the button named New
+note" or "the list named Notes", never a CSS class or DOM position.
+
+**Look at the screens, don't just run the tests.** Screenshots caught what tests cannot:
+an in-note heading bigger than the note title, a focus ring boxing the whole editor in
+dark mode, and a warning that took a third of the sidebar.
+
+**Design tokens make dark mode one switch.** Components only use variables like
+`--surface` and `--text`; the dark theme redefines the variables, not the components.
+BlockNote exposes its colours the same way (`--bn-colors-*`), so it was mapped onto ours.
+
 ## 2026-11-20: Cross-browser (T18)
 
 **Stub on the prototype, not the instance.** In WebKit, `navigator.storage.persist = fake`

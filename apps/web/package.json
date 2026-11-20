@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.app.json && tsc -p tsconfig.node.json",
     "e2e": "playwright test --project=chromium",
-    "e2e:all": "playwright test"
+    "e2e:all": "playwright test",
+    "shots": "SHOTS=1 playwright test --project=chromium"
   },
   "dependencies": {
     "@blocknote/core": "^0.57.0",

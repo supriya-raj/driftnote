@@ -1,0 +1,108 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { Icon } from "../components/Icon";
+import { LogoMark } from "../components/Logo";
+import { formatEdited } from "../lib/relativeTime";
+import { useNow } from "../lib/useNow";
+import { createNote } from "../notes/createNote";
+import { listNotes, subscribeToNoteList, type NoteListEntry } from "../notes/noteList";
+import { StorageWarning } from "../storage/StorageWarning";
+import "./Sidebar.css";
+
+export function Sidebar({ activeNoteId }: { activeNoteId: string | null }) {
+  const navigate = useNavigate();
+  const notes = useNoteList();
+  const now = useNow();
+  const [creating, setCreating] = useState(false);
+
+  async function onNewNote(): Promise<void> {
+    setCreating(true);
+    try {
+      const noteId = await createNote();
+      await navigate(`/n/${noteId}`);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  return (
+    <aside className="sidebar">
+      <header className="sidebar-header">
+        <Link to="/" className="brand">
+          <LogoMark />
+          <h1 className="brand-name">Driftnote</h1>
+        </Link>
+      </header>
+
+      <div className="sidebar-actions">
+        <button
+          type="button"
+          className="btn btn-primary btn-block"
+          disabled={creating}
+          onClick={() => void onNewNote()}
+        >
+          <Icon name="plus" />
+          New note
+        </button>
+      </div>
+
+      <nav className="sidebar-notes" aria-label="Note navigation">
+        {notes === null ? null : notes.length === 0 ? (
+          <div className="sidebar-empty">
+            <p className="sidebar-empty-title">No notes yet</p>
+            <p>Notes are saved in this browser and work offline.</p>
+          </div>
+        ) : (
+          <>
+            <h2 className="sidebar-section">
+              All notes <span className="sidebar-count">{notes.length}</span>
+            </h2>
+            <ul className="note-list" aria-label="Notes">
+              {notes.map((note) => (
+                <li
+                  key={note.noteId}
+                  className="note-list-item"
+                  data-active={note.noteId === activeNoteId || undefined}
+                >
+                  <Link
+                    to={`/n/${note.noteId}`}
+                    className="note-list-link"
+                    data-untitled={!note.title || undefined}
+                    aria-current={note.noteId === activeNoteId ? "page" : undefined}
+                  >
+                    {note.title || "Untitled"}
+                  </Link>
+                  <span className="note-list-meta">{formatEdited(note.updatedAt, now)}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </nav>
+
+      <footer className="sidebar-footer">
+        <StorageWarning />
+      </footer>
+    </aside>
+  );
+}
+
+/** The note list, re-read whenever it changes in this tab. `null` while loading. */
+function useNoteList(): NoteListEntry[] | null {
+  const [notes, setNotes] = useState<NoteListEntry[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const load = (): void => {
+      void listNotes().then((entries) => {
+        if (!cancelled) setNotes(entries);
+      });
+    };
+    load();
+    const unsubscribe = subscribeToNoteList(load);
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, []);
+  return notes;
+}
