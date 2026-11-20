@@ -61,7 +61,7 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 
 ## Phase 0: Setup (M0)
 
-**Done when:** CI is green on an empty app.
+**Done when:** `pnpm check` is green locally on an empty app.
 
 | ID | Goal | Deliverable | Tests first | Verify |
 |---|---|---|---|---|
@@ -70,7 +70,6 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T03 | Server skeleton + Vitest | `apps/sync-server` (TS, `tsx` dev, `tsc` build) with `GET /healthz`; root Vitest config; `test`/`test:int` scripts | integration: `/healthz` returns 200 | `pnpm test:int` green |
 | T04 | Web skeleton + Playwright | `apps/web` (Vite + React) rendering the app title; Playwright config that builds the web app and starts the server | e2e `@M0`: app loads and shows "Driftnote" | `pnpm e2e` green |
 | T05 | Lint and format | ESLint flat config (typescript-eslint type-checked), Prettier; `lint`, `format:check`, `check` scripts | none | `pnpm lint && pnpm format:check` pass |
-| T06 | CI | `.github/workflows/ci.yml`: install, lint, format, typecheck, test, e2e (Chromium), upload Playwright traces on failure; nightly `e2e:all` job | none | `gh run list --limit 1` shows success on `main` |
 | T07 | README stub + learning log | `README.md` (one-liner, run-locally steps), `docs/LEARNING_LOG.md` | none | A fresh clone follows the README steps to a running app |
 
 ## Phase 1: Single-user, offline-first editor (M1)
@@ -87,7 +86,7 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T15 | Persistent storage | Call `navigator.storage.persist()` at startup; warning banner if refused | e2e: refused → banner visible; granted → no banner (API stubbed) | `pnpm e2e --grep @M1` green |
 | T16 | Safe links | Only `http:`, `https:`, `mailto:` links rendered clickable | e2e: a `javascript:` link is not rendered as a working link | `pnpm e2e --grep @M1` green |
 | T17 | Schema gate | Notes with `meta.schemaVersion` above the app's supported version open read-only with a message | e2e: hook sets a higher version → editor read-only, message shown | `pnpm e2e --grep @M1` green |
-| T18 | Close M1 | `@M1-done` switched to a normal test | none | `pnpm check` green; `pnpm e2e:all --grep @M1` green; CI green |
+| T18 | Close M1 | `@M1-done` switched to a normal test; Playwright Firefox and WebKit installed locally | none | `pnpm check` green; `pnpm e2e:all --grep @M1` green |
 
 ## Phase 2: Real-time collaboration (M2)
 
@@ -113,11 +112,11 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T35 | View-only client | Read-only editor for view role | e2e: view link → editor read-only; update injected via test hook never reaches the owner | `pnpm e2e --grep @M2` green |
 | T36 | Tabs | Two tabs of one note stay in sync (approach per S20 findings) | e2e: two tabs, offline, edit in one → visible in the other | `pnpm e2e --grep @M2` green |
 | T37 | Security headers | CSP (`script-src 'self'`), `Referrer-Policy: no-referrer`, HSTS when served over HTTPS | integration `headers.int`: headers present on app and API responses | `pnpm test:int` green |
-| T38 | Close M2 | `@M2-done` switched to a normal test | none | `pnpm check` green; `pnpm e2e:all --grep "@M1\|@M2"` green; CI green |
+| T38 | Close M2 | `@M2-done` switched to a normal test | none | `pnpm check` green; `pnpm e2e:all --grep "@M1\|@M2"` green |
 
 ## Phase 3: Offline conflict handling (M3)
 
-**Done when:** concurrent offline edits to the same paragraph are both preserved, and the test is stable in CI (5 consecutive passes).
+**Done when:** concurrent offline edits to the same paragraph are both preserved, and the test is stable (5 consecutive local passes; also enforced in CI in Phase 6).
 
 | ID | Goal | Deliverable | Tests first | Verify |
 |---|---|---|---|---|
@@ -128,7 +127,7 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T44 | Stranded edits | On 4401/4410 with unacknowledged changes, offer "Save my version as a new note" | e2e: link revoked while offline → reconnect → save as new note keeps content; same for note deleted while offline | `pnpm e2e --grep @M3` green |
 | T45 | Convergence property test | fast-check generator: N clients, random edits, random disconnects, through the real server; seeds logged | integration `convergence.int`: all replicas and server converge | `pnpm test:int` green |
 | T46 | Known-loss characterisation | Test pinning current behaviour: deleting a block while another user types inside it loses the typed text; learning-log entry | e2e or integration (whichever reproduces it reliably) | `pnpm test` / `pnpm e2e` green |
-| T47 | Close M3 | `@M3-done` switched to a normal test; CI job runs `@M3` with `--repeat-each=5` | none | `pnpm e2e --grep @M3 --repeat-each=5` green locally and in CI; `pnpm e2e:all --grep @M3` green |
+| T47 | Close M3 | `@M3-done` switched to a normal test | none | `pnpm e2e --grep @M3 --repeat-each=5` green; `pnpm e2e:all --grep @M3` green |
 
 ## Phase 4: Version history (M4)
 
@@ -142,7 +141,7 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T53 | History API | `GET /api/notes/:id/snapshots`, `GET .../:sid`, `POST .../snapshots` (`named` / `pre-restore`); owner and edit only | integration `history-api.int`: list/fetch/create; view role gets 403; fetched snapshot loads with the content from that moment | `pnpm test:int` green |
 | T54 | History panel | Panel listing versions; read-only preview; "Save version" with a name; hidden for viewers | e2e: list shows auto and named versions; preview does not change the live note; viewer sees no history | `pnpm e2e --grep @M4` green (except `@M4-done`) |
 | T55 | Restore | `pre-restore` snapshot, then replace live blocks; undo works | e2e: restore syncs to collaborator; undo returns to pre-restore content; restore during concurrent typing behaves as documented | `pnpm e2e --grep @M4` green |
-| T56 | Close M4 | `@M4-done` switched to a normal test | none | `pnpm check` green; `pnpm e2e:all --grep @M4` green; CI green |
+| T56 | Close M4 | `@M4-done` switched to a normal test | none | `pnpm check` green; `pnpm e2e:all --grep @M4` green |
 
 ## Phase 5: Accessibility and performance (M5)
 
@@ -156,7 +155,21 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T63 | Performance budgets + optimisation | Budgets written as failing tests from target numbers, then optimisations; results recorded; size limits re-tuned (ADR 011) | perf tests with budgets | `pnpm perf` within budget; `docs/PERFORMANCE.md` updated |
 | T64 | Manual audit | Manual keyboard and screen-reader pass; findings and fixes logged | n/a | Learning-log entry; `pnpm check` green |
 
-## Phase 6: Explorations (optional)
+## Phase 6: Continuous integration (final)
+
+Until this phase, **local `pnpm check` is the gate** for every task. CI is added last.
+Prerequisite: the owner grants the `gh` token the `workflow` scope
+(`gh auth refresh -h github.com -s workflow`), which GitHub requires for workflow files.
+
+**Done when:** CI on GitHub runs the same checks as `pnpm check` and is green on `main`.
+
+| ID | Goal | Deliverable | Tests first | Verify |
+|---|---|---|---|---|
+| T70 | CI checks | `.github/workflows/ci.yml` on push/PR: install, lint, format, typecheck, `pnpm test`, `pnpm audit --audit-level high`, e2e (Chromium); Playwright report and traces uploaded on failure | none | `gh run list --limit 1` shows success on `main` |
+| T71 | Nightly cross-browser | Scheduled (and manually triggerable) job running `pnpm e2e:all` | none | A manually triggered run (`gh workflow run ci.yml`) succeeds |
+| T72 | Stability gate in CI | CI step running `pnpm e2e --grep @M3 --repeat-each=5` | none | Green in CI |
+
+## Phase 7: Explorations (optional)
 
 Each needs a new ADR approved before any tasks are planned:
 - Note index and full-text search on SQLite-WASM/OPFS (ADR 004 option B).

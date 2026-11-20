@@ -82,3 +82,14 @@ The owner prefers few unit tests and more integration and e2e coverage, with TDD
 - **Trade-off accepted:** slower red/green loops and harder diagnosis than unit-heavy TDD.
 - Library-behaviour questions are answered by time-boxed spikes (no TDD; findings logged,
   code discarded).
+
+## Amendment (2026-11-20): CI added last
+
+The owner wants tests passing locally first; CI is built in the final phase (execution plan
+Phase 6). Until then:
+
+- **Local `pnpm check`** (lint, format, typecheck, all Vitest tests, Chromium e2e) is the
+  gate for every task; `pnpm e2e:all` (all browsers) runs locally when closing a milestone.
+- The M3 stability gate (5 consecutive passes) runs locally; it is added to CI in Phase 6.
+- The dependency audit (ADR 011) also moves into the Phase 6 CI job; until then it can be
+  run locally with `pnpm audit`.

@@ -34,14 +34,14 @@ Decided in `docs/adr/` (reasons and trade-offs there); system design in `docs/AR
 - **Sync server:** hand-built Node WebSocket relay (Yjs wire format) with SQLite
 - **Sharing:** links carrying hashed, revocable owner/edit/view tokens
 - **Testing:** Playwright (e2e, multi-user, offline) and Vitest (server integration, minimal unit)
-- **CI:** GitHub Actions
+- **CI:** GitHub Actions, added at the end; local checks first
 - **Deployment:** none planned; runs locally
 
 ## Milestones
 
 ### M0: Setup
-Monorepo, strict TypeScript, ESLint/Prettier, Vitest, CI skeleton, README stub.
-**Done when:** CI is green on an empty app.
+Monorepo, strict TypeScript, ESLint/Prettier, Vitest, Playwright, README stub.
+**Done when:** all checks (`pnpm check`) pass locally on an empty app.
 
 ### M1: Single-user, offline-first editor
 BlockNote editor, note list, create/rename/delete, persisted via `y-indexeddb`. Works with the network disabled.
@@ -53,7 +53,7 @@ Hand-built sync server, share links (edit/view), two browsers editing the same n
 
 ### M3: Offline conflict handling
 Offline edits from two users merge correctly on reconnect. Add a connection status indicator, plus tests that force offline, edit on both sides, then reconnect.
-**Done when:** concurrent offline edits to the same paragraph are both preserved, and the test is stable in CI (5 consecutive passes).
+**Done when:** concurrent offline edits to the same paragraph are both preserved, and the test is stable (5 consecutive passes).
 
 ### M4: Version history
 Server-side periodic snapshots, named versions, a history panel, preview, and restore.
@@ -61,6 +61,11 @@ Server-side periodic snapshots, named versions, a history panel, preview, and re
 
 ### M5: Accessibility and performance
 Keyboard navigation and screen-reader labels for the editor UI. Run an accessibility audit (axe plus a manual keyboard pass). Measure performance on large documents (10k+ words), then optimize and record the results.
+
+### CI (final)
+GitHub Actions running the same checks as `pnpm check`, plus nightly cross-browser e2e and
+the M3 stability gate.
+**Done when:** CI is green on `main`.
 
 ### M6: Explorations (optional, pick any)
 - Move the note index and full-text search to SQLite-WASM on OPFS.

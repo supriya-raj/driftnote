@@ -4,7 +4,7 @@
 **Phase 0: Setup (M0).** Execution plan approved 2026-11-12.
 
 ## Next action
-**T06**: owner runs `gh auth refresh -h github.com -s workflow`; then push and confirm the first CI run is green.
+Owner decides how to remove the unpushed CI commit (`1472a3d`) so pushing works again (see In-progress notes); then **T07** (README stub + learning log).
 
 ## Task status
 
@@ -15,7 +15,6 @@
 | 0 | T03 | Server skeleton + Vitest | done |
 | 0 | T04 | Web skeleton + Playwright | done |
 | 0 | T05 | Lint and format | done |
-| 0 | T06 | CI | in-progress |
 | 0 | T07 | README stub + learning log | todo |
 | 1 | T10 | M1 acceptance test | todo |
 | 1 | T11 | Note docs + local persistence + editor | todo |
@@ -65,6 +64,9 @@
 | 5 | T62 | Performance baseline | todo |
 | 5 | T63 | Performance budgets + optimisation | todo |
 | 5 | T64 | Manual audit | todo |
+| 6 | T70 | CI checks | todo |
+| 6 | T71 | Nightly cross-browser | todo |
+| 6 | T72 | Stability gate in CI | todo |
 
 Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed), `blocked`.
 
@@ -83,6 +85,8 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - 2026-11-12: Plan decisions: owner does not write tests; M3 stability gate is 5
   consecutive passes. Execution plan approved ("modify as we go").
 - 2026-11-12: Toolchain pinned: Node 26.13.1 (current Active LTS), pnpm 12.18.0.
+- 2026-11-20: CI moved to the end (Phase 6: T70-T72); local `pnpm check` is the gate
+  until then. Former T06 removed from Phase 0.
 - 2026-11-12: TypeScript pinned to ~6.0.3, not 7.x: typescript-eslint (type-checked lint,
   ADR 008) supports only `<6.1`. Revisit when it supports TypeScript 7.
 
@@ -93,10 +97,12 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - Whether built-in `node:sqlite` is stable in the pinned Node version: decided in T23.
 
 ## In-progress notes
-- **T06 (CI):** `.github/workflows/ci.yml` is committed locally (`1472a3d`) but **not
-  pushed**: GitHub rejects workflow files from a token without the `workflow` scope. The
-  `gh` token has `gist`, `read:org`, `repo`. Remaining: add the scope, push, confirm the run
-  is green, mark T06 done. Local `pnpm check` is green.
+- **Unpushed CI commit:** `1472a3d` (adds `.github/workflows/ci.yml`) is in local history
+  but was never pushed; GitHub rejects any push containing workflow changes from a token
+  without the `workflow` scope (token has `gist`, `read:org`, `repo`). CI was moved to
+  Phase 6, so this commit must leave the pushed history: either drop it from local history
+  (needs owner permission) or push it with the scope and delete the file afterwards. All
+  later commits are local until this is resolved.
 
 ## Handoff note
 Architecture discussion finished: 12 accepted ADRs and `docs/ARCHITECTURE.md`. Execution
