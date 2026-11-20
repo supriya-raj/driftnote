@@ -1,6 +1,7 @@
 import { isNoteId } from "@driftnote/shared";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
+import { setCurrentNote } from "../notes/currentNote";
 import { noteExistsLocally, OpenNote } from "../notes/noteDoc";
 import { keepListEntryInSync } from "../notes/noteList";
 import { DeleteNoteButton } from "./DeleteNoteButton";
@@ -33,6 +34,7 @@ export function NotePage() {
       await note.loaded;
       if (isCancelled()) return;
       stopListSync = keepListEntryInSync(note);
+      setCurrentNote(note);
       setState({ kind: "open", note });
     }
 
@@ -40,6 +42,7 @@ export function NotePage() {
     return () => {
       cancelled = true;
       stopListSync();
+      setCurrentNote(null);
       setState({ kind: "loading" });
       void opened?.close();
     };

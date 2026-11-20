@@ -5,6 +5,19 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-20: Safe links (T16)
+
+**The dangerous link is the one you did not type.** Editors filter links on paste and
+typing, but in a CRDT app content also arrives as document updates from other replicas,
+which skip those filters. The test injects a link straight into the Yjs fragment.
+
+**Defence in depth, each layer tested by removing it.** BlockNote already renders invalid
+links with `href=""` and its toolbar refuses `javascript:`. We narrowed the allow-list
+(BlockNote's default also allows ftp, tel, sms, ...), replaced the click handler (the
+default opened the emptied link, i.e. the current page, in a new tab) and styled emptied
+links as text. `new URL(href).protocol` is used instead of a prefix check, because
+browsers ignore leading whitespace/control characters (`" javascript:..."`).
+
 ## 2026-11-20: Offline app shell (T14)
 
 **A service worker only helps from the second load.** The first visit downloads the app

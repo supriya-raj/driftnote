@@ -4,7 +4,7 @@
 **Phase 1: Single-user, offline-first editor (M1): in progress.** Phase 1 plan approved 2026-11-20.
 
 ## Next action
-T16: safe links (only `http:`, `https:`, `mailto:` rendered clickable).
+T17: schema gate (`meta.schemaVersion` above supported → read-only with a message).
 
 ## Task status
 
@@ -22,7 +22,7 @@ T16: safe links (only `http:`, `https:`, `mailto:` rendered clickable).
 | 1 | T13 | Local delete | done |
 | 1 | T14 | Offline app shell | done |
 | 1 | T15 | Persistent storage | done |
-| 1 | T16 | Safe links | todo |
+| 1 | T16 | Safe links | done |
 | 1 | T17 | Schema gate | todo |
 | 1 | T18 | Close M1 | todo |
 | 2 | S20 | Spike: tabs + unknown blocks | todo |
@@ -175,3 +175,9 @@ test.
 T15 done: `src/storage/persistentStorage.ts` (ask once; skip if already persistent) and
 `StorageWarning` (`role="alert"` banner when refused or unsupported). Tests
 `e2e/persistent-storage.spec.ts` stub `navigator.storage` with `addInitScript`.
+T16 done: `src/notes/safeLinks.ts` (`isSafeLinkHref`: `URL`-parsed scheme in
+http/https/mailto; `openLinkSafely`: opens only safe links with `noopener`), passed to
+BlockNote as `links.isValidLink` / `links.onClick`; `NoteEditor.css` shows emptied links as
+plain text. Test hook `injectLink(text, href)` edits the Yjs fragment directly (like a
+remote update); `src/notes/currentNote.ts` tracks the open note for hooks. Each defence
+verified by removing it (ftp link kept its address; clicks opened two tabs).

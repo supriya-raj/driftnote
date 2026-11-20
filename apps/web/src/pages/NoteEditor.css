@@ -1,0 +1,7 @@
+/* Links whose address failed the safety check render with an empty href (safeLinks.ts).
+   Show them as plain text so nothing invites a click. */
+.bn-editor a[data-inline-content-type="link"][href=""] {
+  color: inherit;
+  text-decoration: none;
+  cursor: text;
+}
