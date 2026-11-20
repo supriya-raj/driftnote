@@ -1,10 +1,11 @@
 # Progress
 
 ## Current phase
-**Phase 0: Setup (M0).** Execution plan approved 2026-11-12.
+**Phase 0: Setup (M0): complete.** Execution plan approved 2026-11-12.
 
 ## Next action
-Owner decides how to remove the unpushed CI commit (`1472a3d`) so pushing works again (see In-progress notes); then **T07** (README stub + learning log).
+Phase 0 is complete. Next: state the **Phase 1** plan (offline-first editor, T10-T18) in
+5-10 lines and wait for the owner's OK.
 
 ## Task status
 
@@ -15,7 +16,7 @@ Owner decides how to remove the unpushed CI commit (`1472a3d`) so pushing works 
 | 0 | T03 | Server skeleton + Vitest | done |
 | 0 | T04 | Web skeleton + Playwright | done |
 | 0 | T05 | Lint and format | done |
-| 0 | T07 | README stub + learning log | todo |
+| 0 | T07 | README stub + learning log | done |
 | 1 | T10 | M1 acceptance test | todo |
 | 1 | T11 | Note docs + local persistence + editor | todo |
 | 1 | T12 | Note list cache | todo |
@@ -97,12 +98,7 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - Whether built-in `node:sqlite` is stable in the pinned Node version: decided in T23.
 
 ## In-progress notes
-- **Unpushed CI commit:** `1472a3d` (adds `.github/workflows/ci.yml`) is in local history
-  but was never pushed; GitHub rejects any push containing workflow changes from a token
-  without the `workflow` scope (token has `gist`, `read:org`, `repo`). CI was moved to
-  Phase 6, so this commit must leave the pushed history: either drop it from local history
-  (needs owner permission) or push it with the scope and delete the file afterwards. All
-  later commits are local until this is resolved.
+None.
 
 ## Handoff note
 Architecture discussion finished: 12 accepted ADRs and `docs/ARCHITECTURE.md`. Execution
@@ -127,3 +123,7 @@ rules for web code, Prettier compat); Prettier (width 100; Markdown excluded so 
 not reformatted). Root `tsconfig.json` covers root config files; `apps/web/tsconfig.json`
 is a solution file referencing `tsconfig.app.json` and `tsconfig.node.json`. `pnpm check`
 runs everything and is green.
+CI moved to Phase 6; the unpushed CI commit was dropped from local history with the owner's
+permission (2026-11-20).
+T07 done: `README.md` (run locally in three commands, checks, layout, doc links),
+`docs/LEARNING_LOG.md` (first entries), root `pnpm dev` runs server and web together.

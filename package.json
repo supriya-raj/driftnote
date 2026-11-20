@@ -9,6 +9,7 @@
     "pnpm": ">=12.18.0 <13"
   },
   "scripts": {
+    "dev": "pnpm -r --parallel dev",
     "typecheck": "tsc -p tsconfig.json && pnpm -r --parallel typecheck",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
