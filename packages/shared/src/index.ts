@@ -3,3 +3,5 @@
  * refuses versions it cannot handle (ADR 012).
  */
 export const PROTOCOL_VERSION = 1;
+
+export * from "./note";

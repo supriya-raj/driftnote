@@ -4,7 +4,10 @@
   "compilerOptions": {
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    // BlockNote's types do not support this flag (even its default editor type fails to
+    // type-check against its own view component). Kept on for server and shared code.
+    "exactOptionalPropertyTypes": false
   },
   "include": ["src"]
 }

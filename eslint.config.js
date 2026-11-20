@@ -30,6 +30,8 @@ export default defineConfig(
     rules: {
       // Numbers in template strings (e.g. ports) are fine.
       "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
+      // `const { a, ...rest } = obj` is the idiomatic way to drop keys.
+      "@typescript-eslint/no-unused-vars": ["error", { ignoreRestSiblings: true }],
     },
   },
   {

@@ -5,6 +5,23 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-20: Editor and local persistence (T11)
+
+**Knowing when IndexedDB has saved.** `y-indexeddb` writes every update in its own
+transaction but gives no "saved" callback. IndexedDB runs transactions that touch the same
+store in creation order, so a read-only "barrier" transaction created right after the
+write completes only once the write has committed. That drives `data-local-state`, which
+tests wait on instead of sleeping.
+
+**Test that an "absence" test can fail.** "No Image item in the slash menu" passes
+trivially if the menu never opens or the label pattern is wrong. Two guards: assert a
+present item first (Heading 1), and temporarily restore the media blocks to watch the
+test go red.
+
+**Strict flags vs library types.** `exactOptionalPropertyTypes` makes "missing" and
+"`undefined`" different. Libraries rarely write types for it; BlockNote's fail even
+against themselves. Turned off for web code only.
+
 ## 2026-11-20: Expected failures and timeouts
 
 **A timeout is not a failure in Playwright.** `test.fail()` expects the status "failed";

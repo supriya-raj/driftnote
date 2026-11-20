@@ -4,7 +4,7 @@
 **Phase 1: Single-user, offline-first editor (M1): in progress.** Phase 1 plan approved 2026-11-20.
 
 ## Next action
-T11: note docs + `y-indexeddb` persistence + BlockNote editor at `/n/:noteId` (tests first).
+T12: note list cache (`idb` store, titles from `meta`, rebuild from docs); tests first.
 
 ## Task status
 
@@ -17,7 +17,7 @@ T11: note docs + `y-indexeddb` persistence + BlockNote editor at `/n/:noteId` (t
 | 0 | T05 | Lint and format | done |
 | 0 | T07 | README stub + learning log | done |
 | 1 | T10 | M1 acceptance test | done |
-| 1 | T11 | Note docs + local persistence + editor | todo |
+| 1 | T11 | Note docs + local persistence + editor | done |
 | 1 | T12 | Note list cache | todo |
 | 1 | T13 | Local delete | todo |
 | 1 | T14 | Offline app shell | todo |
@@ -92,12 +92,19 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 
 - 2026-11-20: Phase 1 plan approved. Playwright `actionTimeout`/`navigationTimeout` set to
   10 s (a timeout is not a failure, so it would break `test.fail()`).
+- 2026-11-20: `exactOptionalPropertyTypes` turned off for `apps/web` browser code only:
+  BlockNote 0.57's types do not compile with it (even its default editor type). Still on
+  for server and shared code. ESLint `no-unused-vars` allows `ignoreRestSiblings`.
+- 2026-11-20: BlockNote collaboration via `@blocknote/core/yjs` (Yjs 13 + `y-prosemirror`),
+  not `@blocknote/core/y` (Yjs 14 release candidate); `y-indexeddb` needs Yjs 13.
 
 ## Open questions
 - To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
   of unknown block types (S20); Playwright offline emulation of WebSockets (S40).
 - `ack` message encoding: designed in T27.
 - Whether built-in `node:sqlite` is stable in the pinned Node version: decided in T23.
+- Bundle size: main JS chunk is 1.4 MB (440 kB gzipped), mostly BlockNote, plus ~25 locale
+  chunks. Check the PWA precache size limit in T14; optimise in M5 (T63).
 
 ## In-progress notes
 None.
@@ -132,3 +139,11 @@ T07 done: `README.md` (run locally in three commands, checks, layout, doc links)
 T10 done: `apps/web/e2e/m1-offline.spec.ts` (`@M1-done`, `test.fail()`). UI contract it
 fixes: a "New note" button on `/`; editor wrapper `data-testid="note-editor"` with
 `data-local-state="saved"` once the change is in IndexedDB; the URL stays the note URL.
+T11 done: `@driftnote/shared` exports `createNoteId`/`isNoteId` (nanoid, 21 chars) and
+doc constants (`content`, `meta`, `NOTE_SCHEMA_VERSION = 1`). Web: `src/notes/noteDoc.ts`
+(`OpenNote`: Y.Doc + `y-indexeddb`, `localState` tracked with a read-only IndexedDB
+"barrier" transaction after each update), `createNote.ts` (writes `meta`, waits for save),
+`schema.ts` (no audio/file/image/video), React Router routes `/` and `/n/:noteId`.
+Tests: `e2e/editor.spec.ts` (reload keeps content; two notes separate; no media in slash
+menu, verified to fail when media blocks are restored). `@M1-done` now fails at the
+offline reload (`ERR_INTERNET_DISCONNECTED`), as expected until T14.
