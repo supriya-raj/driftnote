@@ -266,6 +266,7 @@ exactly as in the WebSocket handshake.
 | `POST /api/notes/:id/tokens` `{ role: "edit" \| "view" }` | owner | Create a share link | `201 { tokenId, token, role, createdAt }` (token shown **once**) |
 | `GET /api/notes/:id/tokens` | owner | List links for the share panel | `200 [{ tokenId, role, createdAt, revokedAt }]` |
 | `DELETE /api/notes/:id/tokens/:tokenId` | owner | Revoke a link; disconnects its live sockets | `204` |
+| `GET /api/notes/:id/role` | any valid token | Tell a browser that opened a share link what it may do | `200 { role }` |
 | `DELETE /api/notes/:id` | owner | Delete note for everyone; writes tombstone | `204` |
 | `GET /api/notes/:id/snapshots` | owner, edit | List versions | `200 [{ snapshotId, createdAt, kind, name, sizeBytes }]` |
 | `GET /api/notes/:id/snapshots/:sid` | owner, edit | Download one version | `200` binary note state |

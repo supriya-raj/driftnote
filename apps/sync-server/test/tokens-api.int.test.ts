@@ -191,4 +191,17 @@ describe("token REST API", () => {
     });
     expect(cross.status).toBe(404); // you can only revoke links of your own note
   });
+
+  it("tells any valid token holder their role, and refuses invalid tokens", async () => {
+    const { noteId, owner } = await ownedNote();
+    const view = await createLink(noteId, owner, "view");
+    const role = async (token: string | null): Promise<unknown> => {
+      const res = await api(`/notes/${noteId}/role`, token);
+      return res.status === 200 ? await res.json() : res.status;
+    };
+    expect(await role(owner)).toEqual({ role: "owner" });
+    expect(await role(view.token)).toEqual({ role: "view" });
+    expect(await role(createToken())).toBe(401);
+    expect(await role(null)).toBe(401);
+  });
 });

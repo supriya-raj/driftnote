@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T33: presence (name and colour prompt stored in `localStorage`; remote cursors with labels).
+T33: presence (name and colour stored in `localStorage`; remote cursors with labels; decide the presence-spoofing question).
 
 ## Task status
 
@@ -41,7 +41,7 @@ T33: presence (name and colour prompt stored in `localStorage`; remote cursors w
 | 2 | T31 | Token REST API | done |
 | 2 | T32 | Client sync wiring | done |
 | 2 | T33 | Presence | todo |
-| 2 | T34 | Share dialog + link opening | todo |
+| 2 | T34 | Share dialog + link opening | done |
 | 2 | T35 | View-only client | todo |
 | 2 | T36 | Tabs | todo |
 | 2 | T37 | Security headers | todo |
@@ -135,6 +135,10 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   through the API; owners are never minted through it.
 - 2026-11-21: Tokens, roles and the "not backed up" flag live in a separate IndexedDB
   database `driftnote-access` (never dropped), not in the note-list cache.
+- 2026-11-21: T34 done before T33 (T33's test needs two people in one note, which needs
+  share links). `@M2-done` switched to a normal test in T34, which made it pass.
+- 2026-11-21: New endpoint `GET /api/notes/:id/role` (any valid token → `{ role }`), so a
+  browser that opened a link learns its role from the server, not from the (editable) link.
 
 ## Open questions
 - To answer by spike: Playwright offline emulation of WebSockets (S40).
@@ -321,3 +325,13 @@ syncing / synced from `wsconnected` + `ackCovers`; local changes mark `unsynced`
 sidebar "Not backed up" marker. e2e helper `controlSyncNetwork` (Playwright
 `routeWebSocket` block/unblock); e2e server `SAVE_DEBOUNCE_MS=300`. Tests `e2e/sync.spec.ts`;
 offline screen added to `pnpm shots`.
+T34 done: server `GET /api/notes/:id/role`. Web: `src/api/client.ts` (REST calls, `ApiError`
+with status 0 = unreachable, `shareUrl` puts the token in the fragment);
+`src/notes/openLink.ts` (`acceptLinkFromUrl`: read `#t`, scrub it with `replaceState`, fetch
+role, store access unless the browser already owns the note); access DB v2 adds `links`
+(owner keeps created tokens to copy again). `ShareDialog` (native `<dialog>` +
+`showModal`; create/copy/revoke with confirm; disabled until connected); NotePage states
+`invalid-link` and `link-offline`, `hashchange` re-runs link handling, Share button for
+owners, `SyncStoppedNotice` for 4401/4410/4413/4426. Phone toolbar: `.toolbar-btn` icon-only
+(scoped: dialogs render inside the toolbar). e2e fixture `bob` (`e2e/support/users.ts`),
+helper `createShareLink`; tests `e2e/share.spec.ts`; `m2-collab` now a normal test.

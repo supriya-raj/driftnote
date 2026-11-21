@@ -5,13 +5,15 @@ import type { SyncEndpoint } from "../sync/syncEndpoint";
 import { bearerToken, readJson, sendJson, sendStatus } from "./http";
 
 const TOKENS_PATH = /^\/api\/notes\/([^/]+)\/tokens(?:\/(\d+))?$/;
+const ROLE_PATH = /^\/api\/notes\/([^/]+)\/role$/;
 
 /**
  * Share-link management (ARCHITECTURE.md, section 6.2), owner only:
  *   POST   /api/notes/:id/tokens            { role: "edit" | "view" } → 201, token shown once
  *   GET    /api/notes/:id/tokens            → 200 list (never tokens)
  *   DELETE /api/notes/:id/tokens/:tokenId   → 204, live users disconnected (4401)
- * Returns false if the path is not a tokens path.
+ *   GET    /api/notes/:id/role              → 200 { role } for any valid token
+ * Returns false if the path is not one of these.
  */
 export async function handleTokensApi(
   deps: { tokens: TokensStore; sync: SyncEndpoint },
@@ -19,6 +21,16 @@ export async function handleTokensApi(
   res: ServerResponse,
   pathname: string,
 ): Promise<boolean> {
+  const roleMatch = ROLE_PATH.exec(pathname);
+  if (roleMatch) {
+    // Lets a browser that opened a share link learn what it may do (e.g. view-only).
+    const role = resolveRole(deps.tokens, roleMatch[1] ?? "", bearerToken(req));
+    if (req.method !== "GET") sendStatus(res, 405);
+    else if (typeof role === "number") sendStatus(res, role);
+    else sendJson(res, 200, { role });
+    return true;
+  }
+
   const match = TOKENS_PATH.exec(pathname);
   if (!match) return false;
   const noteId = match[1] ?? "";

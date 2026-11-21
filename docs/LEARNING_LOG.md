@@ -5,6 +5,21 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-21: Sharing (T34)
+
+**The URL fragment never leaves the browser.** `#t=<token>` is not sent in requests or
+`Referer` headers, so share-link tokens stay out of server logs. The app still removes it
+from the address bar (`history.replaceState`) so it does not linger in history.
+
+**A link to the page you are on is not a page load.** Opening `/n/<id>#t=...` while
+`/n/<id>` is open only changes the fragment: no reload, no React remount. The app listens
+for `hashchange` to handle the link anyway; a test caught it by opening a link twice.
+
+**CSS scoped by "inside this element" leaks into portals and dialogs.** A phone rule for
+toolbar buttons also shrank the share dialog's buttons (the dialog lives inside the
+toolbar in the DOM, though it is drawn on top), so a click meant for one button hit the
+other. Screenshots plus the scripted clicks exposed it; a dedicated class fixed it.
+
 ## 2026-11-21: Proving that something did NOT happen (T27)
 
 **"No message arrived" needs a barrier.** Checking right after the moment in question

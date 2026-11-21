@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createNote, editorBody } from "./support/notes";
+import { createShareLink } from "./support/share";
 
 async function typeOnNewLine(page: Page, text: string): Promise<void> {
   await editorBody(page).click();
@@ -9,17 +10,14 @@ async function typeOnNewLine(page: Page, text: string): Promise<void> {
 }
 
 // M2 "done when": two people editing one note see both edits in both views.
-// Expected to fail until the milestone's features exist (switched to a normal test then).
+// Written as expected-to-fail in T21; switched to a normal test in T34, which made it pass.
 test("@M2-done two people editing one note both see both edits", async ({ browser }) => {
-  test.fail();
   // Separate browser contexts = separate people (no shared storage or cookies).
   const alice = await (await browser.newContext()).newPage();
   const bob = await (await browser.newContext()).newPage();
 
   await createNote(alice, { title: "Shared plan", text: "Alice wrote this first." });
-  await alice.getByRole("button", { name: "Share" }).click();
-  await alice.getByRole("button", { name: "Create edit link" }).click();
-  const link = await alice.getByRole("textbox", { name: "Edit link" }).inputValue();
+  const link = await createShareLink(alice, "edit"); // Share → Create edit link → close
 
   await bob.goto(link);
   await expect(bob.getByTestId("note-editor")).toContainText("Alice wrote this first.");

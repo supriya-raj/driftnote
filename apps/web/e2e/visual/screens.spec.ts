@@ -63,6 +63,15 @@ for (const scheme of ["light", "dark"] as const) {
         await shot(page, `${prefix}-04-slash-menu`);
         await page.keyboard.press("Escape");
 
+        await page.getByRole("button", { name: "Share" }).click();
+        const share = page.getByRole("dialog", { name: /Share/ });
+        await share.getByRole("button", { name: "Create edit link" }).click();
+        await share.getByRole("textbox", { name: "Edit link", exact: true }).waitFor();
+        await share.getByRole("button", { name: "Create view link" }).click();
+        await share.getByRole("list", { name: "Links" }).getByRole("listitem").nth(1).waitFor();
+        await shot(page, `${prefix}-09-share`);
+        await share.getByRole("button", { name: "Close" }).click();
+
         await page.getByRole("button", { name: "Delete note" }).click();
         await shot(page, `${prefix}-05-delete-confirm`);
         await page.getByRole("button", { name: "Cancel" }).click();

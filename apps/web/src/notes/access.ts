@@ -17,16 +17,34 @@ export interface NoteAccess {
   syncedAt: number | null;
 }
 
+/**
+ * A share link this browser created (owner only). The server shows a link's token once,
+ * so the owner keeps it here to copy it again later (ARCHITECTURE.md, section 5.3).
+ */
+export interface ShareLink {
+  tokenId: number;
+  noteId: string;
+  role: "edit" | "view";
+  token: string;
+  createdAt: number;
+}
+
 interface AccessSchema extends DBSchema {
   access: { key: string; value: NoteAccess };
+  links: { key: number; value: ShareLink; indexes: { noteId: string } };
 }
 
 let dbPromise: Promise<IDBPDatabase<AccessSchema>> | null = null;
 
 function db(): Promise<IDBPDatabase<AccessSchema>> {
-  dbPromise ??= openDB<AccessSchema>("driftnote-access", 1, {
-    upgrade(database) {
-      database.createObjectStore("access", { keyPath: "noteId" });
+  // Forward-only upgrades: this database is never dropped (ADR 012).
+  dbPromise ??= openDB<AccessSchema>("driftnote-access", 2, {
+    upgrade(database, oldVersion) {
+      if (oldVersion < 1) database.createObjectStore("access", { keyPath: "noteId" });
+      if (oldVersion < 2) {
+        const links = database.createObjectStore("links", { keyPath: "tokenId" });
+        links.createIndex("noteId", "noteId");
+      }
     },
   });
   return dbPromise;
@@ -47,8 +65,22 @@ export async function putAccess(access: NoteAccess): Promise<void> {
 }
 
 export async function removeAccess(noteId: string): Promise<void> {
-  await (await db()).delete("access", noteId);
+  const database = await db();
+  await database.delete("access", noteId);
+  for (const link of await database.getAllFromIndex("links", "noteId", noteId)) {
+    await database.delete("links", link.tokenId);
+  }
   notifyNoteChange();
+}
+
+export async function saveShareLink(link: ShareLink): Promise<void> {
+  await (await db()).put("links", link);
+}
+
+/** Links this browser created for the note, keyed by token ID. */
+export async function shareLinksOf(noteId: string): Promise<Map<number, ShareLink>> {
+  const links = await (await db()).getAllFromIndex("links", "noteId", noteId);
+  return new Map(links.map((l) => [l.tokenId, l]));
 }
 
 /** Records whether the note has unacknowledged changes; writes only when it changes. */

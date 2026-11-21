@@ -41,12 +41,12 @@ export function DeleteNoteButton({ note }: { note: OpenNote }) {
     <div className="delete-note" ref={wrapper}>
       <button
         type="button"
-        className="btn btn-ghost-danger"
+        className="btn btn-ghost-danger toolbar-btn"
         aria-expanded={confirming}
         onClick={() => setConfirming((open) => !open)}
       >
         <Icon name="trash" />
-        Delete note
+        <span className="btn-label">Delete note</span>
       </button>
       {confirming && (
         <div role="alertdialog" aria-labelledby="delete-note-title" className="popover">
