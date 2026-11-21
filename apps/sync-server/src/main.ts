@@ -27,6 +27,7 @@ const server = await startServer({
   port,
   host,
   databasePath,
+  trustProxy: process.env.TRUST_PROXY === "1",
   ...(staticDir ? { staticDir } : {}),
   sync: {
     ...(saveDebounceMs !== undefined ? { saveDebounceMs } : {}),

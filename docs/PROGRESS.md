@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T37: security headers (CSP `script-src 'self'`, `Referrer-Policy: no-referrer`, HSTS over HTTPS).
+T38: close M2 (`pnpm check` and `pnpm e2e:all --grep "@M1\|@M2"` green).
 
 ## Task status
 
@@ -44,7 +44,7 @@ T37: security headers (CSP `script-src 'self'`, `Referrer-Policy: no-referrer`, 
 | 2 | T34 | Share dialog + link opening | done |
 | 2 | T35 | View-only client | done |
 | 2 | T36 | Tabs | done |
-| 2 | T37 | Security headers | todo |
+| 2 | T37 | Security headers | done |
 | 2 | T38 | Close M2 | todo |
 | 3 | S40 | Spike: offline WebSockets in Playwright | todo |
 | 3 | T41 | M3 acceptance test | todo |
@@ -144,6 +144,9 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   client is sent everyone's presence only after its sync step 2 reply (content first):
   cursors that arrive before their content make BlockNote's cursor plugin throw and stop
   rendering.
+- 2026-11-21: CSP allows inline *styles* (`style-src 'self' 'unsafe-inline'`): Mantine
+  injects a <style> tag and cursors/avatars use style attributes. Scripts stay `'self'`.
+  HSTS only over TLS or with `TRUST_PROXY=1` and `X-Forwarded-Proto: https`.
 
 ## Open questions
 - To answer by spike: Playwright offline emulation of WebSockets (S40).
@@ -358,3 +361,10 @@ tabs while the server is unreachable, as S20 predicted. `e2e/tabs.spec.ts` (two 
 one context, all sync sockets closed via `context.routeWebSocket`) passed at once and was
 verified by sabotage (`disableBc: true` makes it fail). Confirms S20's caveat in a real
 browser.
+T37 done: `apps/sync-server/src/securityHeaders.ts` on every HTTP response: CSP
+(`default-src 'self'`, `script-src 'self'`, `object-src 'none'`, `base-uri 'none'`,
+`frame-ancestors 'none'`, ...), `Referrer-Policy: no-referrer`, `X-Content-Type-Options:
+nosniff`, HSTS when HTTPS (TLS socket, or trusted proxy via `trustProxy` / env
+`TRUST_PROXY=1`). Tests `test/headers.int.test.ts`, `e2e/csp.spec.ts` (main flows record
+zero `securitypolicyviolation` events; an injected inline script is blocked); verified by
+sabotage. Whole e2e suite green in all three browsers under the policy.

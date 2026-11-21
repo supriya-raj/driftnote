@@ -4,6 +4,7 @@ import { NotesStore } from "./db/notesStore";
 import { TokensStore } from "./db/tokensStore";
 import { handleTokensApi } from "./api/tokensApi";
 import { authorize } from "./sync/auth";
+import { setSecurityHeaders } from "./securityHeaders";
 import { serveStatic } from "./static";
 import { SyncEndpoint, type SyncOptions } from "./sync/syncEndpoint";
 
@@ -15,6 +16,11 @@ export interface ServerOptions {
   readonly staticDir?: string;
   /** SQLite file; defaults to an in-memory database (tests that do not need persistence). */
   readonly databasePath?: string;
+  /**
+   * Set when a TLS-terminating proxy sits in front: its `X-Forwarded-Proto` is then
+   * believed (for HSTS). Off by default, so clients cannot fake it.
+   */
+  readonly trustProxy?: boolean;
   /** Sync tuning, mostly for tests (timers, grace period, ping interval, note loading). */
   readonly sync?: SyncOptions;
 }
@@ -39,6 +45,7 @@ async function handleRequest(
   res: ServerResponse,
 ): Promise<void> {
   const { pathname } = new URL(req.url ?? "/", "http://localhost");
+  setSecurityHeaders(req, res, { trustProxy: options.trustProxy ?? false });
 
   if (req.method === "GET" && pathname === "/healthz") {
     res.writeHead(200, { "content-type": "application/json" });
