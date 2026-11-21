@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T26: persistence (debounced save, clear `dirty` before encode; load on room open).
+T27: save acknowledgement (`ack` with state vector + delete set after durable save; client coverage check).
 
 ## Task status
 
@@ -33,7 +33,7 @@ T26: persistence (debounced save, clear `dirty` before encode; load on room open
 | 2 | T23 | Database + migrations | done |
 | 2 | T24 | Rooms + sync relay | done |
 | 2 | T25 | Room robustness | done |
-| 2 | T26 | Persistence | todo |
+| 2 | T26 | Persistence | done |
 | 2 | T27 | Save acknowledgement | todo |
 | 2 | T28 | Connect-time auth | todo |
 | 2 | T29 | Role filter | todo |
@@ -256,3 +256,10 @@ unload after the grace period, a join cancels it; ping sweep terminates sockets 
 since the last ping. Tests `test/room-lifecycle.int.test.ts` (dead socket = raw `ws`
 client with `autoPong: false`); queue verified by sabotage. Slow-consumer close has no
 test yet (hard to provoke deterministically).
+T26 done: `src/db/notesStore.ts` (load; upsert whole state + schema_version). Rooms load
+from SQLite on open (origin `storage`, not marked dirty); any other change sets `dirty` and
+schedules a save `saveDebounceMs` (2 s) after the first unsaved change (not reset by later
+edits); unload and shutdown save first; a failed save re-marks dirty and retries. `dirty`
+cleared before encoding. Env overrides: `SAVE_DEBOUNCE_MS`, `UNLOAD_GRACE_MS`,
+`PING_INTERVAL_MS`. Tests `test/persistence.int.test.ts` (restart, continuous typing, every
+client's changes, unload saves); the no-postpone rule verified by sabotage.

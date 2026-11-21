@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { openDatabase, type Db } from "./db/database";
+import { NotesStore } from "./db/notesStore";
 import { serveStatic } from "./static";
 import { SyncEndpoint, type SyncOptions } from "./sync/syncEndpoint";
 
@@ -44,7 +45,14 @@ async function handleRequest(
 
 export async function startServer(options: ServerOptions): Promise<RunningServer> {
   const db = openDatabase(options.databasePath ?? ":memory:");
-  const sync = new SyncEndpoint(options.sync);
+  const notes = new NotesStore(db);
+  const sync = new SyncEndpoint({
+    loadNote: (noteId) => Promise.resolve(notes.load(noteId)),
+    saveNote: (noteId, state, schemaVersion) => {
+      notes.save(noteId, state, schemaVersion);
+    },
+    ...options.sync,
+  });
   const http = createServer((req, res) => {
     handleRequest(options, req, res).catch((err: unknown) => {
       console.error("request failed", err);

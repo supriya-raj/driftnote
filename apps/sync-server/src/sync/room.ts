@@ -1,10 +1,13 @@
-import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "@driftnote/shared";
+import { MESSAGE_AWARENESS, MESSAGE_SYNC, NOTE_META_KEY } from "@driftnote/shared";
 import * as decoding from "lib0/decoding";
 import * as encoding from "lib0/encoding";
 import type { WebSocket } from "ws";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as syncProtocol from "y-protocols/sync";
 import * as Y from "yjs";
+
+/** Transaction origin for state loaded from the database (no need to save it again). */
+export const STORAGE_ORIGIN = "storage";
 
 /** What the server knows about one connection (ARCHITECTURE.md, section 7.1). */
 export interface Connection {
@@ -28,6 +31,10 @@ export class Room {
   readonly doc = new Y.Doc();
   readonly awareness = new awarenessProtocol.Awareness(this.doc);
   readonly connections = new Map<WebSocket, Connection>();
+  /** Changed since the last save (ARCHITECTURE.md, section 7.3). */
+  dirty = false;
+  /** Called after any change that needs saving (not for state loaded from storage). */
+  onChange: () => void = () => undefined;
 
   private readonly maxBufferedBytes: number;
 
@@ -40,6 +47,12 @@ export class Room {
     this.awareness.setLocalState(null);
     this.doc.on("update", this.onDocUpdate);
     this.awareness.on("update", this.onAwarenessUpdate);
+  }
+
+  /** The note's `meta.schemaVersion` (ADR 012), stored alongside the state. */
+  get schemaVersion(): number {
+    const value = this.doc.getMap(NOTE_META_KEY).get("schemaVersion");
+    return typeof value === "number" ? value : 1;
   }
 
   get isEmpty(): boolean {
@@ -106,6 +119,10 @@ export class Room {
   }
 
   private readonly onDocUpdate = (update: Uint8Array, origin: unknown): void => {
+    if (origin !== STORAGE_ORIGIN) {
+      this.dirty = true;
+      this.onChange();
+    }
     const encoder = encoding.createEncoder();
     encoding.writeVarUint(encoder, MESSAGE_SYNC);
     syncProtocol.writeUpdate(encoder, update);
