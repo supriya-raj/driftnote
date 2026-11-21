@@ -103,6 +103,16 @@ export class Room {
     }
   }
 
+  /** Sends one message to every connection in the room. */
+  broadcast(message: Uint8Array): void {
+    for (const socket of this.connections.keys()) this.send(socket, message);
+  }
+
+  /** Sends one message to a single connection. */
+  sendTo(socket: WebSocket, message: Uint8Array): void {
+    this.send(socket, message);
+  }
+
   /** Removes a connection and the presence it controlled. */
   leave(socket: WebSocket): void {
     const connection = this.connections.get(socket);

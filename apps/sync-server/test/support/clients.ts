@@ -1,4 +1,4 @@
-import { PROTOCOL_VERSION } from "@driftnote/shared";
+import { decodeAckMessage, MESSAGE_ACK, PROTOCOL_VERSION } from "@driftnote/shared";
 import { WebsocketProvider } from "y-websocket";
 import * as Y from "yjs";
 
@@ -6,6 +6,8 @@ export interface TestClient {
   readonly doc: Y.Doc;
   readonly provider: WebsocketProvider;
   readonly text: Y.Text;
+  /** Save acknowledgements received, oldest first. */
+  readonly acks: Y.Snapshot[];
   /** Resolves once the provider has completed the initial sync with the server. */
   synced(): Promise<void>;
   destroy(): void;
@@ -33,9 +35,15 @@ export function connectClient(
       pv: String(options.protocolVersion ?? PROTOCOL_VERSION),
     },
   });
+  const acks: Y.Snapshot[] = [];
+  // The stock provider has no handler for Driftnote's ack message; register one.
+  provider.messageHandlers[MESSAGE_ACK] = (_encoder, decoder) => {
+    acks.push(decodeAckMessage(decoder));
+  };
   const client: TestClient = {
     doc,
     provider,
+    acks,
     text: doc.getText("t"),
     synced: () =>
       provider.synced

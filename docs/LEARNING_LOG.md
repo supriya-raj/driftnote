@@ -5,6 +5,20 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-21: Proving that something did NOT happen (T27)
+
+**"No message arrived" needs a barrier.** Checking right after the moment in question
+proves nothing: a wrong message may still be on the wire. Make the sender send something
+*after* that moment and wait for it; messages on one connection arrive in order, so once
+the later one is in, the earlier one would be too. Here: a second client's edit, which the
+server forwards after the failed save. Without the barrier, sending the ack before saving
+went unnoticed.
+
+**State vectors miss deletions.** Deleting text adds nothing to the state vector (deletes
+are tracked separately, in the delete set), so "the server's state vector covers mine"
+would call a delete-only change synced. Yjs snapshots carry both; the unit test for the
+delete-only case fails if the delete-set check is removed.
+
 ## 2026-11-21: Single origin and a test that could not fail (T22)
 
 **`fetch` cleans URLs before sending them.** `/../secret` becomes `/secret` and `%2e%2e`

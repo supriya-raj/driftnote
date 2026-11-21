@@ -11,6 +11,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "nanoid": "^6.0.2"
+    "lib0": "^0.2.120",
+    "nanoid": "^6.0.2",
+    "yjs": "^13.6.33"
   }
 }

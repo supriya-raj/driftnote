@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T27: save acknowledgement (`ack` with state vector + delete set after durable save; client coverage check).
+T28: connect-time auth (protocol version 4426, tombstone 4410, token hash lookup, owner claim, 4401).
 
 ## Task status
 
@@ -34,7 +34,7 @@ T27: save acknowledgement (`ack` with state vector + delete set after durable sa
 | 2 | T24 | Rooms + sync relay | done |
 | 2 | T25 | Room robustness | done |
 | 2 | T26 | Persistence | done |
-| 2 | T27 | Save acknowledgement | todo |
+| 2 | T27 | Save acknowledgement | done |
 | 2 | T28 | Connect-time auth | todo |
 | 2 | T29 | Role filter | todo |
 | 2 | T30 | Limits | todo |
@@ -123,13 +123,16 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - 2026-11-21: Server timers are injected (`src/sync/timers.ts`); tests drive a manual clock
   (`test/support/manualTimers.ts`) instead of faking global timers, which would also freeze
   the timers inside `ws` and Yjs. Any incoming traffic counts as liveness, not only pongs.
+- 2026-11-21: `ack` = message type 100 + an encoded Yjs snapshot (state vector + delete
+  set) of the state just saved. Coverage: every local insert count ≤ the ack's and every
+  locally deleted range inside the ack's delete set. Also sent on join when the room has
+  nothing unsaved.
 
 ## Open questions
 - To answer by spike: Playwright offline emulation of WebSockets (S40).
 - **Owner decision needed:** ADR 012 amendment (Proposed): every `schemaVersion` bump also
   bumps `PROTOCOL_VERSION`, so the server refuses outdated clients that would delete
   unknown blocks (S20 finding). Not urgent: no block types are added before then.
-- `ack` message encoding: designed in T27.
 - The architecture puts this browser's token and role in the note-list store, but that
   store is a droppable cache. Decide in T32: keep tokens in a separate, never-dropped store.
 - Bundle size: main JS chunk is 1.4 MB (440 kB gzipped), mostly BlockNote, plus ~25 locale
@@ -263,3 +266,9 @@ edits); unload and shutdown save first; a failed save re-marks dirty and retries
 cleared before encoding. Env overrides: `SAVE_DEBOUNCE_MS`, `UNLOAD_GRACE_MS`,
 `PING_INTERVAL_MS`. Tests `test/persistence.int.test.ts` (restart, continuous typing, every
 client's changes, unload saves); the no-postpone rule verified by sabotage.
+T27 done: `@driftnote/shared` `ack.ts` (`MESSAGE_ACK = 100`, `encodeAckMessage`,
+`decodeAckMessage`, `ackCovers`; shared now depends on `yjs` and `lib0`). Server: state and
+ack encoded in one synchronous step, ack broadcast only after `saveNote` returns; failed
+save sends nothing and retries. Unit tests `packages/shared/src/ack.test.ts` (delete-only
+case verified by sabotage); integration `test/ack.int.test.ts` (failed-save test uses a
+message barrier; verified by sabotage). Test clients record acks.

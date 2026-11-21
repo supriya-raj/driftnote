@@ -1,4 +1,4 @@
-import { isNoteId } from "@driftnote/shared";
+import { encodeAckMessage, isNoteId } from "@driftnote/shared";
 import type { IncomingMessage, Server } from "node:http";
 import type { Duplex } from "node:stream";
 import { WebSocketServer, type RawData, type WebSocket } from "ws";
@@ -112,6 +112,9 @@ export class SyncEndpoint {
         if (closed) return;
         room = loaded;
         room.join(ws);
+        // Nothing unsaved: the room's state *is* the saved state, so acknowledge it now.
+        // Otherwise a client with nothing new would never see an ack.
+        if (!room.dirty) room.sendTo(ws, encodeAckMessage(room.doc));
         for (const message of queue.splice(0)) this.deliver(room, ws, message);
       },
       (err: unknown) => {
@@ -192,7 +195,12 @@ export class SyncEndpoint {
     if (!room.dirty) return;
     room.dirty = false;
     try {
-      this.saveNote(room.noteId, Y.encodeStateAsUpdate(room.doc), room.schemaVersion);
+      // State and ack are taken in the same synchronous step, so the ack describes exactly
+      // what is written; it is sent only after the write has returned (ADR 005).
+      const state = Y.encodeStateAsUpdate(room.doc);
+      const ack = encodeAckMessage(room.doc);
+      this.saveNote(room.noteId, state, room.schemaVersion);
+      room.broadcast(ack);
     } catch (err) {
       room.dirty = true;
       console.error(`sync: saving a note failed, will retry: ${String(err)}`);
