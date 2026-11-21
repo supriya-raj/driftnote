@@ -29,7 +29,13 @@ export class Room {
   readonly awareness = new awarenessProtocol.Awareness(this.doc);
   readonly connections = new Map<WebSocket, Connection>();
 
-  constructor(readonly noteId: string) {
+  private readonly maxBufferedBytes: number;
+
+  constructor(
+    readonly noteId: string,
+    options: { maxBufferedBytes?: number } = {},
+  ) {
+    this.maxBufferedBytes = options.maxBufferedBytes ?? Number.POSITIVE_INFINITY;
     // The server relays presence; it is not a participant itself.
     this.awareness.setLocalState(null);
     this.doc.on("update", this.onDocUpdate);
@@ -49,11 +55,11 @@ export class Room {
     const sync = encoding.createEncoder();
     encoding.writeVarUint(sync, MESSAGE_SYNC);
     syncProtocol.writeSyncStep1(sync, this.doc);
-    send(socket, encoding.toUint8Array(sync));
+    this.send(socket, encoding.toUint8Array(sync));
 
     const states = this.awareness.getStates();
     if (states.size > 0) {
-      send(socket, this.encodeAwareness([...states.keys()]));
+      this.send(socket, this.encodeAwareness([...states.keys()]));
     }
   }
 
@@ -68,7 +74,7 @@ export class Room {
         // Applies step 2 / updates to the doc with the socket as origin, and writes a
         // step 2 reply into `reply` when the message was a step 1.
         syncProtocol.readSyncMessage(decoder, reply, this.doc, socket);
-        if (encoding.length(reply) > 1) send(socket, encoding.toUint8Array(reply));
+        if (encoding.length(reply) > 1) this.send(socket, encoding.toUint8Array(reply));
         break;
       }
       case MESSAGE_AWARENESS:
@@ -105,7 +111,7 @@ export class Room {
     syncProtocol.writeUpdate(encoder, update);
     const message = encoding.toUint8Array(encoder);
     for (const socket of this.connections.keys()) {
-      if (socket !== origin) send(socket, message);
+      if (socket !== origin) this.send(socket, message);
     }
   };
 
@@ -121,8 +127,21 @@ export class Room {
       for (const id of change.removed) connection.awarenessIds.delete(id);
     }
     const message = this.encodeAwareness(changed);
-    for (const socket of this.connections.keys()) send(socket, message);
+    for (const socket of this.connections.keys()) this.send(socket, message);
   };
+
+  /**
+   * Sends unless the socket is closed. A client whose unsent data keeps growing cannot keep
+   * up; it is closed (it will reconnect and catch up) rather than eat the server's memory.
+   */
+  private send(socket: WebSocket, message: Uint8Array): void {
+    if (socket.readyState !== socket.OPEN) return;
+    if (socket.bufferedAmount > this.maxBufferedBytes) {
+      socket.close(1013, "too slow, reconnect");
+      return;
+    }
+    socket.send(message);
+  }
 
   private encodeAwareness(clientIds: number[]): Uint8Array {
     const encoder = encoding.createEncoder();
@@ -133,8 +152,4 @@ export class Room {
     );
     return encoding.toUint8Array(encoder);
   }
-}
-
-function send(socket: WebSocket, message: Uint8Array): void {
-  if (socket.readyState === socket.OPEN) socket.send(message);
 }

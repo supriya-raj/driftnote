@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { openDatabase, type Db } from "./db/database";
 import { serveStatic } from "./static";
-import { SyncEndpoint } from "./sync/syncEndpoint";
+import { SyncEndpoint, type SyncOptions } from "./sync/syncEndpoint";
 
 export interface ServerOptions {
   /** Port to listen on; 0 picks any free port (used by tests). */
@@ -11,6 +11,8 @@ export interface ServerOptions {
   readonly staticDir?: string;
   /** SQLite file; defaults to an in-memory database (tests that do not need persistence). */
   readonly databasePath?: string;
+  /** Sync tuning, mostly for tests (timers, grace period, ping interval, note loading). */
+  readonly sync?: SyncOptions;
 }
 
 export interface RunningServer {
@@ -42,7 +44,7 @@ async function handleRequest(
 
 export async function startServer(options: ServerOptions): Promise<RunningServer> {
   const db = openDatabase(options.databasePath ?? ":memory:");
-  const sync = new SyncEndpoint();
+  const sync = new SyncEndpoint(options.sync);
   const http = createServer((req, res) => {
     handleRequest(options, req, res).catch((err: unknown) => {
       console.error("request failed", err);

@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T25: room robustness (shared load, unload grace, queue during load, ping/terminate, slow consumers).
+T26: persistence (debounced save, clear `dirty` before encode; load on room open).
 
 ## Task status
 
@@ -32,7 +32,7 @@ T25: room robustness (shared load, unload grace, queue during load, ping/termina
 | 2 | T22 | Single origin | done |
 | 2 | T23 | Database + migrations | done |
 | 2 | T24 | Rooms + sync relay | done |
-| 2 | T25 | Room robustness | todo |
+| 2 | T25 | Room robustness | done |
 | 2 | T26 | Persistence | todo |
 | 2 | T27 | Save acknowledgement | todo |
 | 2 | T28 | Connect-time auth | todo |
@@ -120,6 +120,9 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - 2026-11-21: SQLite settings: WAL, `synchronous=FULL` (the `ack` means "on disk"),
   `foreign_keys=ON`. In T28 the owner claim must create the `notes` row (empty state) before
   the token row, because `tokens.note_id` references `notes`.
+- 2026-11-21: Server timers are injected (`src/sync/timers.ts`); tests drive a manual clock
+  (`test/support/manualTimers.ts`) instead of faking global timers, which would also freeze
+  the timers inside `ws` and Yjs. Any incoming traffic counts as liveness, not only pongs.
 
 ## Open questions
 - To answer by spike: Playwright offline emulation of WebSockets (S40).
@@ -246,3 +249,10 @@ origin; presence IDs tracked per connection and removed on close) and
 `MESSAGE_SYNC = 0`, `MESSAGE_AWARENESS = 1`. Test clients (`test/support/clients.ts`) are
 real `y-websocket` providers with `disableBc: true`. Tests `test/rooms.int.test.ts`
 (presence cleanup verified by sabotage). Auth still open (T28); no persistence yet (T26).
+T25 done: `SyncEndpoint` options `loadNote`, `timers`, `unloadGraceMs` (30 s),
+`pingIntervalMs` (30 s), `maxBufferedBytes` (64 MB, close 1013). Shared `loading` map
+(one load per note); per-connection message queue until the room is ready; empty rooms
+unload after the grace period, a join cancels it; ping sweep terminates sockets silent
+since the last ping. Tests `test/room-lifecycle.int.test.ts` (dead socket = raw `ws`
+client with `autoPong: false`); queue verified by sabotage. Slow-consumer close has no
+test yet (hard to provoke deterministically).
