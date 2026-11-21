@@ -1,12 +1,11 @@
 # Progress
 
 ## Current phase
-**Phase 1: Single-user, offline-first editor (M1): complete** (2026-11-20), plus T19
-(visual design baseline).
+**Phase 2: Real-time collaboration (M2): in progress.** Phase 2 plan approved
+2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-Phase 1 is complete. Next: state the **Phase 2** plan (real-time collaboration, S20 and
-T21-T38) in 5-10 lines and wait for the owner's OK.
+Fix T17's gate to render a disposable copy (S20 finding), then T21: M2 acceptance test.
 
 ## Task status
 
@@ -28,7 +27,7 @@ T21-T38) in 5-10 lines and wait for the owner's OK.
 | 1 | T17 | Schema gate | done |
 | 1 | T18 | Close M1 | done |
 | 1 | T19 | Visual design baseline | done |
-| 2 | S20 | Spike: tabs + unknown blocks | todo |
+| 2 | S20 | Spike: tabs + unknown blocks | done |
 | 2 | T21 | M2 acceptance test | todo |
 | 2 | T22 | Single origin | todo |
 | 2 | T23 | Database + migrations | todo |
@@ -116,8 +115,10 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   (`onClick={() => setOpen(false)}`).
 
 ## Open questions
-- To answer by spikes: offline tab sync with the stock provider (S20); BlockNote's handling
-  of unknown block types (S20); Playwright offline emulation of WebSockets (S40).
+- To answer by spike: Playwright offline emulation of WebSockets (S40).
+- **Owner decision needed:** ADR 012 amendment (Proposed): every `schemaVersion` bump also
+  bumps `PROTOCOL_VERSION`, so the server refuses outdated clients that would delete
+  unknown blocks (S20 finding). Not urgent: no block types are added before then.
 - `ack` message encoding: designed in T27.
 - Whether built-in `node:sqlite` is stable in the pinned Node version: decided in T23.
 - The architecture puts this browser's token and role in the note-list store, but that
@@ -208,3 +209,7 @@ page (sticky toolbar with `SaveStatus` and delete popover, 40px title, BlockNote
 its CSS variables, heading scale 28/22/19px), `UpdatePrompt` toast, logo + favicon.
 `HomePage.tsx` removed (its parts moved into the shell). `pnpm shots` →
 `apps/web/screenshots/` (git-ignored). All e2e unchanged and green in 3 browsers.
+S20 done: learning-log entry. (1) `y-websocket` keeps offline tabs in sync through
+`BroadcastChannel` unless `disconnect()` is called. (2) `y-prosemirror` deletes unknown
+block types from the Yjs doc on render, even when not editable; unknown attributes are
+kept. ADR 012 amendment proposed (not accepted). No spike code committed.

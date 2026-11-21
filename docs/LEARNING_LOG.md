@@ -5,6 +5,31 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-21: Spike S20, tabs and unknown blocks
+
+**Question 1: does the stock provider keep two tabs in sync while offline? Yes.**
+`y-websocket` 3.1 connects its `BroadcastChannel` (same-origin tab messaging) whenever the
+provider *wants* to connect, independent of the WebSocket. With the server unreachable, an
+edit in one "tab" reached the other. Only an explicit `provider.disconnect()` stops it, so
+the client must not call `disconnect()` just because the network dropped. Caveat: the
+check ran two providers in one Node process, where lib0 delivers to same-context
+subscribers directly; T36's e2e test with two real tabs covers the cross-tab path.
+Also useful for T32: 3.1 has a `shouldReconnect(event)` option and a `closed` event with
+the close code, for terminal codes like 4401/4410.
+
+**Question 2: what does BlockNote do with block types it does not know? It deletes them
+from the shared document.** Injected `callout` (unknown) and `image` (removed from our
+schema) blocks were removed from the Yjs doc by `y-prosemirror` on render, silently. A
+`paragraph` with an unknown attribute was kept. The read-only gate (T17) did not help:
+the deletion happens when the document is turned into the editor's view, not on editing.
+Consequences: gated notes now render a disposable copy (fix to T17), and an ADR 012
+amendment (proposed) ties `schemaVersion` bumps to protocol-version bumps so outdated
+clients are refused by the server.
+
+**Spike hygiene.** Spike code (a scratchpad script, a temporary hook, temporary tests) was
+deleted; only these findings are kept. One trap on the way: loading Yjs twice (`require`
+and `import` in one script) breaks it; the first run "showed" no sync for that reason.
+
 ## 2026-11-20: Design baseline (T19)
 
 **Tests that select by role survive a redesign.** The whole UI was restructured (sidebar

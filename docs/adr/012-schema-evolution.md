@@ -61,3 +61,23 @@ drop it when editing, which could delete a collaborator's content.
   fixture.
 - Read-only fallback for outdated clients prevents silent content loss at the cost of
   occasionally blocking edits until reload.
+
+## Amendment (2026-11-21): unknown block types are deleted on render (Proposed, awaiting owner approval)
+
+**Finding (spike S20):** when the editor renders a Yjs document containing a block type
+that is not in its schema (a future type, or one we removed such as `image`),
+`y-prosemirror` cannot convert it and **deletes it from the Yjs document**, with no error.
+That deletion is a normal edit: it is saved and would sync to every collaborator. It
+happens even when the editor is not editable, so the read-only gate above did not prevent
+it. Unknown *attributes* on known blocks are kept.
+
+**Already fixed (implementation of the accepted decision, T17):** a gated note's editor is
+bound to a disposable copy of the document, so nothing it removes reaches IndexedDB or
+other users.
+
+**Proposed addition:** every `schemaVersion` bump also bumps `PROTOCOL_VERSION`. The server
+then refuses outdated clients (close code 4426, "reload to update") before they can
+receive content they would damage, instead of relying only on the client-side gate.
+Without this, an outdated client that is already in a live room could receive a new block
+type and the `schemaVersion` bump in the same update, and render (and delete) the block
+before the gate reacts.
