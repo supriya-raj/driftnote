@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T21: M2 acceptance test (`e2e/m2-collab.spec.ts`, expected to fail).
+T22: single origin (server serves the built app; Vite dev proxies `/api` and `/sync`).
 
 ## Task status
 
@@ -28,7 +28,7 @@ T21: M2 acceptance test (`e2e/m2-collab.spec.ts`, expected to fail).
 | 1 | T18 | Close M1 | done |
 | 1 | T19 | Visual design baseline | done |
 | 2 | S20 | Spike: tabs + unknown blocks | done |
-| 2 | T21 | M2 acceptance test | todo |
+| 2 | T21 | M2 acceptance test | done |
 | 2 | T22 | Single origin | todo |
 | 2 | T23 | Database + migrations | todo |
 | 2 | T24 | Rooms + sync relay | todo |
@@ -217,3 +217,6 @@ T17 fix (after S20): a gated note's editor is bound to a disposable copy
 (`OpenNote.createReadOnlyCopy` + `forwardUpdatesTo`, one-way), so the editor's deletion of
 unknown blocks never reaches storage. Test hooks `injectBlock(type, text)` and
 `storedContent()`; regression test in `e2e/schema-gate.spec.ts`.
+T21 done: `e2e/m2-collab.spec.ts` (`@M2-done`, `test.fail()`), two browser contexts as two
+users. UI contract: "Share" button → "Create edit link" → link in textbox "Edit link";
+opening it in another context joins the note. Fails at the Share button, as expected.
