@@ -84,15 +84,9 @@ export class Room {
     const decoder = decoding.createDecoder(message);
     const type = decoding.readVarUint(decoder);
     switch (type) {
-      case MESSAGE_SYNC: {
-        const reply = encoding.createEncoder();
-        encoding.writeVarUint(reply, MESSAGE_SYNC);
-        // Applies step 2 / updates to the doc with the socket as origin, and writes a
-        // step 2 reply into `reply` when the message was a step 1.
-        syncProtocol.readSyncMessage(decoder, reply, this.doc, socket);
-        if (encoding.length(reply) > 1) this.send(socket, encoding.toUint8Array(reply));
+      case MESSAGE_SYNC:
+        this.receiveSync(socket, decoder);
         break;
-      }
       case MESSAGE_AWARENESS:
         awarenessProtocol.applyAwarenessUpdate(
           this.awareness,
@@ -103,6 +97,34 @@ export class Room {
       default:
         // Unknown message types are ignored, so newer clients can add optional messages.
         break;
+    }
+  }
+
+  /**
+   * The role filter (ARCHITECTURE.md, section 6.1). Everyone may ask what they are missing
+   * (step 1). Only owner and edit connections may change the note (step 2 and updates);
+   * a view connection's changes are dropped, so nothing it sends can alter the note.
+   */
+  private receiveSync(socket: WebSocket, decoder: decoding.Decoder): void {
+    const canWrite = this.connections.get(socket)?.role !== "view";
+    const subtype = decoding.readVarUint(decoder);
+    switch (subtype) {
+      case syncProtocol.messageYjsSyncStep1: {
+        const reply = encoding.createEncoder();
+        encoding.writeVarUint(reply, MESSAGE_SYNC);
+        syncProtocol.readSyncStep1(decoder, reply, this.doc);
+        this.send(socket, encoding.toUint8Array(reply));
+        break;
+      }
+      case syncProtocol.messageYjsSyncStep2:
+        // The socket is the origin, so the change is forwarded to everyone else.
+        if (canWrite) syncProtocol.readSyncStep2(decoder, this.doc, socket);
+        break;
+      case syncProtocol.messageYjsUpdate:
+        if (canWrite) syncProtocol.readUpdate(decoder, this.doc, socket);
+        break;
+      default:
+        throw new Error(`Unknown sync message type ${String(subtype)}`);
     }
   }
 

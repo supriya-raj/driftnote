@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T29: role filter (view connections: sync step 2 and updates dropped).
+T30: limits (document 20 MB / message 24 MB → 4413; update rate → 4429; per-IP connections).
 
 ## Task status
 
@@ -36,7 +36,7 @@ T29: role filter (view connections: sync step 2 and updates dropped).
 | 2 | T26 | Persistence | done |
 | 2 | T27 | Save acknowledgement | done |
 | 2 | T28 | Connect-time auth | done |
-| 2 | T29 | Role filter | todo |
+| 2 | T29 | Role filter | done |
 | 2 | T30 | Limits | todo |
 | 2 | T31 | Token REST API | todo |
 | 2 | T32 | Client sync wiring | todo |
@@ -136,6 +136,9 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - **Owner decision needed:** ADR 012 amendment (Proposed): every `schemaVersion` bump also
   bumps `PROTOCOL_VERSION`, so the server refuses outdated clients that would delete
   unknown blocks (S20 finding). Not urgent: no block types are added before then.
+- Presence spoofing: a connection can send awareness for another client ID (fake or
+  overwrite someone's cursor). Content is unaffected. Decide in T33 whether to only accept
+  awareness for client IDs a connection already owns.
 - The architecture puts this browser's token and role in the note-list store, but that
   store is a droppable cache. Decide in T32: keep tokens in a separate, never-dropped store.
 - Bundle size: main JS chunk is 1.4 MB (440 kB gzipped), mostly BlockNote, plus ~25 locale
@@ -283,3 +286,8 @@ another note is refused, not a crash). Connections carry `tokenId` and `role`. S
 code constants, `createToken`, `isWellFormedToken`, `Role`. Test clients use one owner token
 per note (`defaultTokenFor`). Tests `test/auth.int.test.ts` (DB files incl. WAL scanned for
 token text; logs captured; plaintext storage verified to fail by sabotage).
+T29 done: `Room.receiveSync` reads the sync subtype: step 1 answered for every role; step 2
+and updates applied only for owner/edit (view: dropped silently; unknown subtype throws →
+socket closed 1003). Tests `test/roles.int.test.ts`: all 12 role × message cases with raw
+`ws` sockets and hand-built messages (awareness barrier for "dropped"), viewer receives live
+edits, viewer's local edits reach nobody.
