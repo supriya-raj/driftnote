@@ -96,7 +96,7 @@
   color: var(--text-muted);
 }
 
-.save-status {
+.sync-status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -106,16 +106,27 @@
   user-select: none;
 }
 
-.save-status[data-state="saved"] svg {
+.sync-status[data-sync-state="synced"] svg {
   color: var(--success);
 }
 
-.save-status-dot {
+.sync-status[data-sync-state="stopped"] {
+  color: var(--danger);
+}
+
+.sync-status-dot {
   width: 6px;
   height: 6px;
   margin: 0 4px;
   border-radius: 50%;
   background: currentColor;
+  animation: sync-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes sync-pulse {
+  50% {
+    opacity: 0.35;
+  }
 }
 
 .note-title {

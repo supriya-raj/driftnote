@@ -1,4 +1,5 @@
 import type { OpenNote } from "./noteDoc";
+import { removeAccess } from "./access";
 import { removeListEntry } from "./noteList";
 
 /**
@@ -7,5 +8,6 @@ import { removeListEntry } from "./noteList";
  */
 export async function deleteNoteLocally(note: OpenNote): Promise<void> {
   await removeListEntry(note.noteId);
+  await removeAccess(note.noteId);
   await note.deleteLocal();
 }

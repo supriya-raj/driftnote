@@ -1,5 +1,6 @@
 import { test, type Page } from "@playwright/test";
 import { createNote, editorBody, waitForLocalSave } from "../support/notes";
+import { controlSyncNetwork, syncStatus } from "../support/sync";
 
 /**
  * Not a test: captures every screen for visual review (`pnpm shots`, docs/DESIGN.md).
@@ -50,6 +51,7 @@ for (const scheme of ["light", "dark"] as const) {
 
         await page.goto(noteUrl);
         await editorBody(page).waitFor();
+        await syncStatus(page).and(page.locator('[data-sync-state="synced"]')).waitFor();
         await page.mouse.move(0, 0);
         await shot(page, `${prefix}-03-note`);
 
@@ -67,6 +69,13 @@ for (const scheme of ["light", "dark"] as const) {
 
         await page.evaluate(() => window.__driftnote?.setSchemaVersion(99));
         await shot(page, `${prefix}-06-read-only`);
+
+        const network = await controlSyncNetwork(page);
+        network.block();
+        await createNote(page, { title: "Written offline", text: "Not on the server yet." });
+        await syncStatus(page).and(page.locator('[data-sync-state="offline"]')).waitFor();
+        await shot(page, `${prefix}-08-offline`);
+        network.unblock();
 
         await page.goto("/n/AAAAAAAAAAAAAAAAAAAAA");
         await page.getByRole("heading", { name: "Note not found" }).waitFor();

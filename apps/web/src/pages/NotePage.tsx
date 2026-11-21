@@ -4,15 +4,18 @@ import { Link, useParams } from "react-router";
 import { Icon } from "../components/Icon";
 import { setCurrentNote } from "../notes/currentNote";
 import { noteExistsLocally, OpenNote } from "../notes/noteDoc";
+import { ensureAccess } from "../notes/access";
 import { keepListEntryInSync } from "../notes/noteList";
+import { NoteSync } from "../sync/noteSync";
 import { DeleteNoteButton } from "./DeleteNoteButton";
 import { NoteEditor } from "./NoteEditor";
 import "./NotePage.css";
 import { NoteTitle } from "./NoteTitle";
-import { SaveStatus } from "./SaveStatus";
+import { SyncStatus } from "./SyncStatus";
 import { SchemaGateNotice } from "./SchemaGateNotice";
 
-type PageState = { kind: "loading" } | { kind: "missing" } | { kind: "open"; note: OpenNote };
+type PageState =
+  { kind: "loading" } | { kind: "missing" } | { kind: "open"; note: OpenNote; sync: NoteSync };
 
 export function NotePage() {
   const { noteId = "" } = useParams();
@@ -24,6 +27,7 @@ export function NotePage() {
     let cancelled = false;
     const isCancelled = (): boolean => cancelled;
     let opened: OpenNote | null = null;
+    let sync: NoteSync | null = null;
     let stopListSync = (): void => undefined;
 
     async function open(): Promise<void> {
@@ -37,9 +41,12 @@ export function NotePage() {
       opened = note;
       await note.loaded;
       if (isCancelled()) return;
+      const access = await ensureAccess(noteId);
+      if (isCancelled()) return;
       stopListSync = keepListEntryInSync(note);
+      sync = new NoteSync(note, access);
       setCurrentNote(note);
-      setState({ kind: "open", note });
+      setState({ kind: "open", note, sync });
     }
 
     void open();
@@ -48,6 +55,7 @@ export function NotePage() {
       stopListSync();
       setCurrentNote(null);
       setState({ kind: "loading" });
+      sync?.destroy();
       void opened?.close();
     };
   }, [noteId]);
@@ -61,7 +69,7 @@ export function NotePage() {
         </Link>
         {state.kind === "open" && (
           <div className="note-toolbar-actions">
-            <SaveStatus note={state.note} />
+            <SyncStatus note={state.note} sync={state.sync} />
             <DeleteNoteButton note={state.note} />
           </div>
         )}

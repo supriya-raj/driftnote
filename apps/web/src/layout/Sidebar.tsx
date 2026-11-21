@@ -5,6 +5,7 @@ import { LogoMark } from "../components/Logo";
 import { formatEdited } from "../lib/relativeTime";
 import { useNow } from "../lib/useNow";
 import { createNote } from "../notes/createNote";
+import { getAllAccess } from "../notes/access";
 import { listNotes, subscribeToNoteList, type NoteListEntry } from "../notes/noteList";
 import { StorageWarning } from "../storage/StorageWarning";
 import "./Sidebar.css";
@@ -72,7 +73,18 @@ export function Sidebar({ activeNoteId }: { activeNoteId: string | null }) {
                   >
                     {note.title || "Untitled"}
                   </Link>
-                  <span className="note-list-meta">{formatEdited(note.updatedAt, now)}</span>
+                  <span className="note-list-meta">
+                    {formatEdited(note.updatedAt, now)}
+                    {note.unsynced && (
+                      <span
+                        className="note-list-unsynced"
+                        title="Changes are only in this browser. Open the note while online to back it up."
+                      >
+                        <Icon name="cloudOff" size={12} />
+                        Not backed up
+                      </span>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -87,14 +99,21 @@ export function Sidebar({ activeNoteId }: { activeNoteId: string | null }) {
   );
 }
 
-/** The note list, re-read whenever it changes in this tab. `null` while loading. */
-function useNoteList(): NoteListEntry[] | null {
-  const [notes, setNotes] = useState<NoteListEntry[] | null>(null);
+type ListedNote = NoteListEntry & { unsynced: boolean };
+
+/**
+ * The note list plus each note's "not backed up" flag, re-read whenever either changes
+ * in this tab. `null` while loading.
+ */
+function useNoteList(): ListedNote[] | null {
+  const [notes, setNotes] = useState<ListedNote[] | null>(null);
   useEffect(() => {
     let cancelled = false;
     const load = (): void => {
-      void listNotes().then((entries) => {
-        if (!cancelled) setNotes(entries);
+      void Promise.all([listNotes(), getAllAccess()]).then(([entries, access]) => {
+        if (cancelled) return;
+        // No access record yet means never synced: not backed up.
+        setNotes(entries.map((e) => ({ ...e, unsynced: access.get(e.noteId)?.unsynced ?? true })));
       });
     };
     load();

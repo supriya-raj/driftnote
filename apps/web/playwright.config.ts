@@ -42,6 +42,8 @@ export default defineConfig({
     env: {
       PORT: String(SERVER_PORT),
       STATIC_DIR: resolve(import.meta.dirname, "dist"),
+      // Short save delay so "synced" (which waits for the server's save) comes quickly.
+      SAVE_DEBOUNCE_MS: "300",
       // A fresh database per run, so runs never share state.
       DATABASE_PATH: join(tmpdir(), `driftnote-e2e-${String(Date.now())}.sqlite`),
     },
