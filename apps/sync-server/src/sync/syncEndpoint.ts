@@ -98,6 +98,15 @@ export class SyncEndpoint {
     this.wss.close();
   }
 
+  /** Closes every live connection that uses this token (after it was revoked). */
+  disconnectToken(noteId: string, tokenId: number, closeCode: number): void {
+    const room = this.rooms.get(noteId);
+    if (!room) return;
+    for (const connection of room.connections.values()) {
+      if (connection.tokenId === tokenId) connection.socket.close(closeCode);
+    }
+  }
+
   private readonly onUpgrade = (req: IncomingMessage, socket: Duplex, head: Buffer): void => {
     const { pathname, searchParams } = new URL(req.url ?? "/", "http://localhost");
     const noteId = SYNC_PATH.exec(pathname)?.[1];

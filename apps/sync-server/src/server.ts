@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { openDatabase, type Db } from "./db/database";
 import { NotesStore } from "./db/notesStore";
 import { TokensStore } from "./db/tokensStore";
+import { handleTokensApi } from "./api/tokensApi";
 import { authorize } from "./sync/auth";
 import { serveStatic } from "./static";
 import { SyncEndpoint, type SyncOptions } from "./sync/syncEndpoint";
@@ -26,8 +27,14 @@ export interface RunningServer {
   close(): Promise<void>;
 }
 
+interface Services {
+  readonly tokens: TokensStore;
+  readonly sync: SyncEndpoint;
+}
+
 async function handleRequest(
   options: ServerOptions,
+  services: Services,
   req: IncomingMessage,
   res: ServerResponse,
 ): Promise<void> {
@@ -39,6 +46,7 @@ async function handleRequest(
     return;
   }
 
+  if (await handleTokensApi(services, req, res, pathname)) return;
   if (options.staticDir && (await serveStatic(options.staticDir, req, res, pathname))) return;
 
   res.writeHead(404, { "content-type": "application/json" });
@@ -58,7 +66,7 @@ export async function startServer(options: ServerOptions): Promise<RunningServer
     ...options.sync,
   });
   const http = createServer((req, res) => {
-    handleRequest(options, req, res).catch((err: unknown) => {
+    handleRequest(options, { tokens, sync }, req, res).catch((err: unknown) => {
       console.error("request failed", err);
       if (!res.headersSent) res.writeHead(500);
       res.end();
