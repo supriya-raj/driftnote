@@ -12,6 +12,7 @@ import type { WebSocket } from "ws";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as syncProtocol from "y-protocols/sync";
 import * as Y from "yjs";
+import { filterAwarenessUpdate } from "./awarenessFilter";
 import { LimitError, TokenBucket } from "./limits";
 
 /** Transaction origin for state loaded from the database (no need to save it again). */
@@ -27,6 +28,8 @@ export interface Connection {
   readonly updates: TokenBucket;
   /** Presence client IDs this connection controls, removed for everyone when it closes. */
   readonly awarenessIds: Set<number>;
+  /** Whether this connection has been sent everyone's presence yet (after its content). */
+  presenceSent: boolean;
 }
 
 interface AwarenessChange {
@@ -82,7 +85,13 @@ export class Room {
 
   /** Adds a connection and starts the sync handshake with it. */
   join(socket: WebSocket, grant: { tokenId: number; role: Role }, updates: TokenBucket): void {
-    this.connections.set(socket, { socket, ...grant, updates, awarenessIds: new Set() });
+    this.connections.set(socket, {
+      socket,
+      ...grant,
+      updates,
+      awarenessIds: new Set(),
+      presenceSent: false,
+    });
 
     // "Here is what I have": the client answers with what the server is missing (step 2)
     // and sends its own step 1, which the server answers with what the client is missing.
@@ -91,10 +100,8 @@ export class Room {
     syncProtocol.writeSyncStep1(sync, this.doc);
     this.send(socket, encoding.toUint8Array(sync));
 
-    const states = this.awareness.getStates();
-    if (states.size > 0) {
-      this.send(socket, this.encodeAwareness([...states.keys()]));
-    }
+    // Everyone's presence is sent after this client's first sync step 1 has been answered
+    // (see receiveSync), so the content arrives before any cursor that points into it.
   }
 
   /** Handles one binary message from a connection. */
@@ -105,13 +112,16 @@ export class Room {
       case MESSAGE_SYNC:
         this.receiveSync(socket, decoder);
         break;
-      case MESSAGE_AWARENESS:
-        awarenessProtocol.applyAwarenessUpdate(
-          this.awareness,
-          decoding.readVarUint8Array(decoder),
-          socket,
-        );
+      case MESSAGE_AWARENESS: {
+        // A connection may only speak for presence entries it introduced itself, so no one
+        // can overwrite another person's name or cursor.
+        const update = filterAwarenessUpdate(decoding.readVarUint8Array(decoder), (clientId) => {
+          const owner = this.presenceOwner(clientId);
+          return owner === undefined || owner === socket;
+        });
+        if (update) awarenessProtocol.applyAwarenessUpdate(this.awareness, update, socket);
         break;
+      }
       default:
         // Unknown message types are ignored, so newer clients can add optional messages.
         break;
@@ -132,6 +142,7 @@ export class Room {
         encoding.writeVarUint(reply, MESSAGE_SYNC);
         syncProtocol.readSyncStep1(decoder, reply, this.doc);
         this.send(socket, encoding.toUint8Array(reply));
+        this.sendPresenceOnce(socket);
         break;
       }
       case syncProtocol.messageYjsSyncStep2:
@@ -167,6 +178,27 @@ export class Room {
   /** Records the exact encoded size after a save or load. */
   setEncodedSize(bytes: number): void {
     this.estimatedBytes = bytes;
+  }
+
+  /**
+   * Sends everyone's presence to a connection, once, right after its content. A cursor
+   * that arrives before the content it points into makes the editor's cursor plugin throw
+   * ("position out of range"), which also stops the content from rendering.
+   */
+  private sendPresenceOnce(socket: WebSocket): void {
+    const connection = this.connections.get(socket);
+    if (!connection || connection.presenceSent) return;
+    connection.presenceSent = true;
+    const states = this.awareness.getStates();
+    if (states.size > 0) this.send(socket, this.encodeAwareness([...states.keys()]));
+  }
+
+  /** The connection that introduced this presence entry, if any is still connected. */
+  private presenceOwner(clientId: number): WebSocket | undefined {
+    for (const connection of this.connections.values()) {
+      if (connection.awarenessIds.has(clientId)) return connection.socket;
+    }
+    return undefined;
   }
 
   /** Sends one message to every connection in the room. */

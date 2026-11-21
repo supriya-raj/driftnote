@@ -39,7 +39,7 @@ for (const scheme of ["light", "dark"] as const) {
       test.use({ colorScheme: scheme, viewport });
       const prefix = `${device}-${scheme}`;
 
-      test(`@shots screens ${prefix}`, async ({ page }) => {
+      test(`@shots screens ${prefix}`, async ({ page, browser }) => {
         await page.goto("/");
         await page.getByRole("button", { name: "New note" }).waitFor();
         await shot(page, `${prefix}-01-home-empty`);
@@ -70,7 +70,35 @@ for (const scheme of ["light", "dark"] as const) {
         await share.getByRole("button", { name: "Create view link" }).click();
         await share.getByRole("list", { name: "Links" }).getByRole("listitem").nth(1).waitFor();
         await shot(page, `${prefix}-09-share`);
+        const link = await share.getByRole("textbox", { name: /can edit/ }).inputValue();
         await share.getByRole("button", { name: "Close" }).click();
+
+        // A second person joins and types, so the first sees their avatar and cursor.
+        const bobContext = await browser.newContext({ colorScheme: scheme, viewport });
+        const bob = await bobContext.newPage();
+        await bob.addInitScript(() => {
+          localStorage.setItem(
+            "driftnote.identity",
+            JSON.stringify({ name: "Bob Rivera", color: "#d6409f" }),
+          );
+        });
+        await bob.goto(link);
+        await bob.getByTestId("note-editor").getByText("Plan").waitFor();
+        await editorBody(bob).getByText("LX Factory").click();
+        await bob.keyboard.press("End");
+        await bob.keyboard.type(" (Sunday)");
+        await page.locator(".bn-collaboration-cursor__label").waitFor();
+        await page.mouse.move(0, 0);
+        await shot(page, `${prefix}-10-presence`);
+        await bobContext.close();
+
+        await page.goto("/"); // the profile button lives in the sidebar
+        await page.getByRole("button", { name: /^You:/ }).click();
+        const profile = page.getByRole("dialog", { name: "How others see you" });
+        await profile.waitFor();
+        await shot(page, `${prefix}-11-profile`);
+        await profile.getByRole("button", { name: "Cancel" }).click();
+        await page.goto(noteUrl);
 
         await page.getByRole("button", { name: "Delete note" }).click();
         await shot(page, `${prefix}-05-delete-confirm`);

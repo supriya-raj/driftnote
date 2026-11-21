@@ -7,6 +7,7 @@ import { setCurrentNote } from "../notes/currentNote";
 import { noteExistsLocally, OpenNote } from "../notes/noteDoc";
 import { keepListEntryInSync } from "../notes/noteList";
 import { acceptLinkFromUrl } from "../notes/openLink";
+import { PeopleHere } from "../presence/PeopleHere";
 import { NoteSync } from "../sync/noteSync";
 import { DeleteNoteButton } from "./DeleteNoteButton";
 import { NoteEditor } from "./NoteEditor";
@@ -105,6 +106,7 @@ export function NotePage() {
         </Link>
         {state.kind === "open" && (
           <div className="note-toolbar-actions">
+            <PeopleHere sync={state.sync} />
             <SyncStatus note={state.note} sync={state.sync} />
             {state.access.role === "owner" && <ShareButton open={state} />}
             <DeleteNoteButton note={state.note} />
@@ -141,7 +143,7 @@ export function NotePage() {
           <SyncStoppedNotice sync={state.sync} />
           <SchemaGateNotice note={state.note} />
           <NoteTitle note={state.note} />
-          <NoteEditor note={state.note} />
+          <NoteEditor note={state.note} sync={state.sync} />
         </article>
       )}
     </div>

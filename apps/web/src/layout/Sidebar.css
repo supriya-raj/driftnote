@@ -148,9 +148,9 @@
 }
 
 .sidebar-footer {
-  padding: var(--space-3) var(--space-4) var(--space-4);
-}
-
-.sidebar-footer:empty {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-3);
+  border-top: 1px solid var(--border);
 }

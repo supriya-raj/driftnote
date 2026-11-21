@@ -5,6 +5,19 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-21: Presence (T33)
+
+**Order matters between two independent channels.** Content (sync) and cursors
+(awareness) are separate message streams. A joining client got cursors first; BlockNote's
+cursor plugin tried to place a cursor in content not yet drawn, threw "position out of
+range", and the error also stopped the content rendering. First fix (rebuild the editor
+after sync) would have dropped what a user had already started typing; the real fix was
+server-side ordering: content first, then presence.
+
+**Read the console before guessing.** Two failures here were diagnosed in one probe each:
+`pageerror`/`console` listeners showed the exception, and a DOM dump showed the real class
+name (`bn-collaboration-cursor__label`; my search pattern had cut off the `bn-` prefix).
+
 ## 2026-11-21: Sharing (T34)
 
 **The URL fragment never leaves the browser.** `#t=<token>` is not sent in requests or

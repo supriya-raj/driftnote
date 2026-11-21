@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T33: presence (name and colour stored in `localStorage`; remote cursors with labels; decide the presence-spoofing question).
+T35: view-only client (read-only editor for the view role; an injected update never reaches the owner).
 
 ## Task status
 
@@ -40,7 +40,7 @@ T33: presence (name and colour stored in `localStorage`; remote cursors with lab
 | 2 | T30 | Limits | done |
 | 2 | T31 | Token REST API | done |
 | 2 | T32 | Client sync wiring | done |
-| 2 | T33 | Presence | todo |
+| 2 | T33 | Presence | done |
 | 2 | T34 | Share dialog + link opening | done |
 | 2 | T35 | View-only client | todo |
 | 2 | T36 | Tabs | todo |
@@ -139,15 +139,17 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   share links). `@M2-done` switched to a normal test in T34, which made it pass.
 - 2026-11-21: New endpoint `GET /api/notes/:id/role` (any valid token → `{ role }`), so a
   browser that opened a link learns its role from the server, not from the (editable) link.
+- 2026-11-21: Presence: a connection may only send presence for client IDs it introduced
+  (server filters awareness entries); others' cursors cannot be overwritten. A joining
+  client is sent everyone's presence only after its sync step 2 reply (content first):
+  cursors that arrive before their content make BlockNote's cursor plugin throw and stop
+  rendering.
 
 ## Open questions
 - To answer by spike: Playwright offline emulation of WebSockets (S40).
 - **Owner decision needed:** ADR 012 amendment (Proposed): every `schemaVersion` bump also
   bumps `PROTOCOL_VERSION`, so the server refuses outdated clients that would delete
   unknown blocks (S20 finding). Not urgent: no block types are added before then.
-- Presence spoofing: a connection can send awareness for another client ID (fake or
-  overwrite someone's cursor). Content is unaffected. Decide in T33 whether to only accept
-  awareness for client IDs a connection already owns.
 - Leaving a note right after editing leaves it "Not backed up" until it is reopened online
   (only open notes sync, ADR 005). Cheap improvement to consider: keep the connection open a
   few seconds after leaving, until the save is acknowledged.
@@ -335,3 +337,12 @@ role, store access unless the browser already owns the note); access DB v2 adds 
 owners, `SyncStoppedNotice` for 4401/4410/4413/4426. Phone toolbar: `.toolbar-btn` icon-only
 (scoped: dialogs render inside the toolbar). e2e fixture `bob` (`e2e/support/users.ts`),
 helper `createShareLink`; tests `e2e/share.spec.ts`; `m2-collab` now a normal test.
+T33 done: server `src/sync/awarenessFilter.ts` + ownership check in `Room` (entries for IDs
+owned by another connection dropped); presence sent once per connection after its first
+step-1 reply (`sendPresenceOnce`). Web: `src/presence/identity.ts` (name + colour in
+`localStorage`, friendly random default, `useIdentity` syncs across tabs),
+`ProfileButton` ("You: <name>" in the sidebar footer; dialog "How others see you"),
+`PeopleHere` (avatars from awareness, `aria-label="People here"`), `Avatar`; editor's
+`CollaborationExtension` gets the provider's awareness (not for gated read-only copies);
+identity changes go straight to awareness. Tests `test/presence.int.test.ts` (spoofing,
+content-before-cursors order), `e2e/presence.spec.ts`; screens 10 (presence), 11 (profile).

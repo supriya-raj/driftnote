@@ -7,6 +7,7 @@ import { useNow } from "../lib/useNow";
 import { createNote } from "../notes/createNote";
 import { getAllAccess } from "../notes/access";
 import { listNotes, subscribeToNoteList, type NoteListEntry } from "../notes/noteList";
+import { ProfileButton } from "../presence/ProfileButton";
 import { StorageWarning } from "../storage/StorageWarning";
 import "./Sidebar.css";
 
@@ -94,6 +95,7 @@ export function Sidebar({ activeNoteId }: { activeNoteId: string | null }) {
 
       <footer className="sidebar-footer">
         <StorageWarning />
+        <ProfileButton />
       </footer>
     </aside>
   );
