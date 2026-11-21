@@ -2,7 +2,18 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+// In development Vite serves the app; the sync server (pnpm dev, port 4000) answers /api
+// and /sync. The proxy makes them look like one origin, as in production (ADR 010).
+const SYNC_SERVER = "http://127.0.0.1:4000";
+
 export default defineConfig({
+  server: {
+    proxy: {
+      "/api": SYNC_SERVER,
+      "/healthz": SYNC_SERVER,
+      "/sync": { target: SYNC_SERVER, ws: true },
+    },
+  },
   plugins: [
     react(),
     // Offline app shell (ADR 008): a service worker caches every built file at install

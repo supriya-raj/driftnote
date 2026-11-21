@@ -5,6 +5,21 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-21: Single origin and a test that could not fail (T22)
+
+**`fetch` cleans URLs before sending them.** `/../secret` becomes `/secret` and `%2e%2e`
+counts as `..`, so a path-traversal test written with `fetch` never sends the attack.
+Raw paths need `node:http` (or `curl --path-as-is`). `%2f` (an encoded `/`) survives URL
+parsing and only turns into a separator when the server decodes it: that is the real
+attack path, and why the server checks the path *after* decoding.
+
+**A test needs something to catch.** The first traversal test had no secret file outside
+the app folder, so even a leaking server "passed". Plant the thing that must not leak.
+
+**Silent no-op edits.** A scripted find-and-replace matched nothing (Prettier had re-wrapped
+the line), so the "strengthened" test was never written, and the sabotage check kept
+passing for a confusing reason. Edit scripts now assert that each replacement happened.
+
 ## 2026-11-21: Spike S20, tabs and unknown blocks
 
 **Question 1: does the stock provider keep two tabs in sync while offline? Yes.**

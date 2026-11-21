@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T22: single origin (server serves the built app; Vite dev proxies `/api` and `/sync`).
+T23: database + migrations (decide `node:sqlite` vs `better-sqlite3`).
 
 ## Task status
 
@@ -29,7 +29,7 @@ T22: single origin (server serves the built app; Vite dev proxies `/api` and `/s
 | 1 | T19 | Visual design baseline | done |
 | 2 | S20 | Spike: tabs + unknown blocks | done |
 | 2 | T21 | M2 acceptance test | done |
-| 2 | T22 | Single origin | todo |
+| 2 | T22 | Single origin | done |
 | 2 | T23 | Database + migrations | todo |
 | 2 | T24 | Rooms + sync relay | todo |
 | 2 | T25 | Room robustness | todo |
@@ -220,3 +220,10 @@ unknown blocks never reaches storage. Test hooks `injectBlock(type, text)` and
 T21 done: `e2e/m2-collab.spec.ts` (`@M2-done`, `test.fail()`), two browser contexts as two
 users. UI contract: "Share" button → "Create edit link" → link in textbox "Edit link";
 opening it in another context joins the note. Fails at the Share button, as expected.
+T22 done: `apps/sync-server/src/static.ts` serves `STATIC_DIR` (real files; `index.html`
+for extension-less paths; 404 for missing files with an extension; never `/api`, `/sync`,
+`/healthz`; percent-decoded path must stay inside the root). Caching: `/assets/*`
+immutable, everything else `no-cache`. Unknown routes return JSON 404. Playwright now runs
+one server (build in test mode, then sync server with `STATIC_DIR`, port 4100). Vite dev
+proxies `/api`, `/healthz`, `/sync` (ws) to :4000. Traversal test sends raw paths with
+`node:http` and was verified to fail when the containment check is removed.
