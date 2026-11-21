@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T28: connect-time auth (protocol version 4426, tombstone 4410, token hash lookup, owner claim, 4401).
+T29: role filter (view connections: sync step 2 and updates dropped).
 
 ## Task status
 
@@ -35,7 +35,7 @@ T28: connect-time auth (protocol version 4426, tombstone 4410, token hash lookup
 | 2 | T25 | Room robustness | done |
 | 2 | T26 | Persistence | done |
 | 2 | T27 | Save acknowledgement | done |
-| 2 | T28 | Connect-time auth | todo |
+| 2 | T28 | Connect-time auth | done |
 | 2 | T29 | Role filter | todo |
 | 2 | T30 | Limits | todo |
 | 2 | T31 | Token REST API | todo |
@@ -127,6 +127,9 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   set) of the state just saved. Coverage: every local insert count ≤ the ack's and every
   locally deleted range inside the ack's delete set. Also sent on join when the room has
   nothing unsaved.
+- 2026-11-21: Tokens are 43-char nanoids (~256 bits, `createToken` in shared); only
+  well-formed tokens may claim a new note as owner. Refusals: accept the WebSocket, then
+  close with the code (browsers cannot read why an upgrade failed).
 
 ## Open questions
 - To answer by spike: Playwright offline emulation of WebSockets (S40).
@@ -272,3 +275,11 @@ ack encoded in one synchronous step, ack broadcast only after `saveNote` returns
 save sends nothing and retries. Unit tests `packages/shared/src/ack.test.ts` (delete-only
 case verified by sabotage); integration `test/ack.int.test.ts` (failed-save test uses a
 message barrier; verified by sabotage). Test clients record acks.
+T28 done: `src/db/tokensStore.ts` (SHA-256 `hashToken`; `find` active grant; `noteExists`;
+`isDeleted`; `claimOwner` inserts the empty `notes` row then the owner token in one
+transaction), `src/sync/auth.ts` (`authorize`: pv → 4426, tombstone → 4410, token grant,
+owner claim for unknown note with a well-formed token, else 4401; a token that already owns
+another note is refused, not a crash). Connections carry `tokenId` and `role`. Shared: close
+code constants, `createToken`, `isWellFormedToken`, `Role`. Test clients use one owner token
+per note (`defaultTokenFor`). Tests `test/auth.int.test.ts` (DB files incl. WAL scanned for
+token text; logs captured; plaintext storage verified to fail by sabotage).

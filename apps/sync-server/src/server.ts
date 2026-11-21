@@ -1,6 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { openDatabase, type Db } from "./db/database";
 import { NotesStore } from "./db/notesStore";
+import { TokensStore } from "./db/tokensStore";
+import { authorize } from "./sync/auth";
 import { serveStatic } from "./static";
 import { SyncEndpoint, type SyncOptions } from "./sync/syncEndpoint";
 
@@ -46,7 +48,9 @@ async function handleRequest(
 export async function startServer(options: ServerOptions): Promise<RunningServer> {
   const db = openDatabase(options.databasePath ?? ":memory:");
   const notes = new NotesStore(db);
+  const tokens = new TokensStore(db);
   const sync = new SyncEndpoint({
+    authorize: (noteId, params) => authorize(tokens, noteId, params),
     loadNote: (noteId) => Promise.resolve(notes.load(noteId)),
     saveNote: (noteId, state, schemaVersion) => {
       notes.save(noteId, state, schemaVersion);

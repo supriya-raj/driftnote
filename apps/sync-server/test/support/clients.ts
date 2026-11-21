@@ -1,4 +1,4 @@
-import { decodeAckMessage, MESSAGE_ACK, PROTOCOL_VERSION } from "@driftnote/shared";
+import { createToken, decodeAckMessage, MESSAGE_ACK, PROTOCOL_VERSION } from "@driftnote/shared";
 import { WebsocketProvider } from "y-websocket";
 import * as Y from "yjs";
 
@@ -14,6 +14,22 @@ export interface TestClient {
 }
 
 const clients = new Set<TestClient>();
+
+const ownerTokens = new Map<string, string>();
+
+/**
+ * The token used when a test does not pass one: one per note, like the app (every note
+ * has its own owner token). The first client to open a new note claims it as owner, so
+ * every default client of that note is the owner.
+ */
+export function defaultTokenFor(noteId: string): string {
+  let token = ownerTokens.get(noteId);
+  if (!token) {
+    token = createToken();
+    ownerTokens.set(noteId, token);
+  }
+  return token;
+}
 
 /**
  * A real Yjs client (the stock `y-websocket` provider) connected to the test server.
@@ -31,7 +47,7 @@ export function connectClient(
     WebSocketPolyfill: WebSocket,
     disableBc: true,
     params: {
-      t: options.token ?? "test-token",
+      t: options.token ?? defaultTokenFor(noteId),
       pv: String(options.protocolVersion ?? PROTOCOL_VERSION),
     },
   });

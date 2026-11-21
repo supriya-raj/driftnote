@@ -70,7 +70,7 @@ describe("persistence", () => {
 
     a.text.insert(0, "remember this");
     await serverHas(server, noteId, "remember this");
-    expect(storedText(server, noteId)).toBeNull();
+    expect(storedText(server, noteId)).toBe(""); // row created empty by the owner claim
 
     timers.advance(SAVE_MS);
     expect(storedText(server, noteId)).toBe("remember this");

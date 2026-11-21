@@ -5,7 +5,7 @@ import { WebSocket as RawWebSocket } from "ws";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as Y from "yjs";
 import { startServer, type RunningServer } from "../src/server";
-import { connectClient, destroyAllClients } from "./support/clients";
+import { connectClient, defaultTokenFor, destroyAllClients } from "./support/clients";
 import { ManualTimers } from "./support/manualTimers";
 
 const GRACE_MS = 30_000;
@@ -139,7 +139,8 @@ describe("room lifecycle", () => {
     await observer.synced();
 
     // A raw client that never answers pings, like a laptop that went to sleep.
-    const dead = new RawWebSocket(`ws://127.0.0.1:${String(s.port)}/sync/${noteId}?pv=1`, {
+    const query = `t=${defaultTokenFor(noteId)}&pv=1`;
+    const dead = new RawWebSocket(`ws://127.0.0.1:${String(s.port)}/sync/${noteId}?${query}`, {
       autoPong: false,
     });
     await new Promise((resolve) => dead.once("open", resolve));

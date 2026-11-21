@@ -1,4 +1,4 @@
-import { MESSAGE_AWARENESS, MESSAGE_SYNC, NOTE_META_KEY } from "@driftnote/shared";
+import { MESSAGE_AWARENESS, MESSAGE_SYNC, NOTE_META_KEY, type Role } from "@driftnote/shared";
 import * as decoding from "lib0/decoding";
 import * as encoding from "lib0/encoding";
 import type { WebSocket } from "ws";
@@ -12,6 +12,9 @@ export const STORAGE_ORIGIN = "storage";
 /** What the server knows about one connection (ARCHITECTURE.md, section 7.1). */
 export interface Connection {
   readonly socket: WebSocket;
+  /** Which token this connection used (for revocation) and what it may do. */
+  readonly tokenId: number;
+  readonly role: Role;
   /** Presence client IDs this connection controls, removed for everyone when it closes. */
   readonly awarenessIds: Set<number>;
 }
@@ -60,8 +63,8 @@ export class Room {
   }
 
   /** Adds a connection and starts the sync handshake with it. */
-  join(socket: WebSocket): void {
-    this.connections.set(socket, { socket, awarenessIds: new Set() });
+  join(socket: WebSocket, grant: { tokenId: number; role: Role }): void {
+    this.connections.set(socket, { socket, ...grant, awarenessIds: new Set() });
 
     // "Here is what I have": the client answers with what the server is missing (step 2)
     // and sends its own step 1, which the server answers with what the client is missing.

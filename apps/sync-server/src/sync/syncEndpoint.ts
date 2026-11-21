@@ -1,14 +1,20 @@
-import { encodeAckMessage, isNoteId } from "@driftnote/shared";
+import { encodeAckMessage, isNoteId, type Role } from "@driftnote/shared";
 import type { IncomingMessage, Server } from "node:http";
 import type { Duplex } from "node:stream";
 import { WebSocketServer, type RawData, type WebSocket } from "ws";
 import * as Y from "yjs";
+import type { AuthResult } from "./auth";
 import { Room, STORAGE_ORIGIN } from "./room";
 import { realTimers, type Timers } from "./timers";
 
 const SYNC_PATH = /^\/sync\/([^/]+)$/;
 
 export interface SyncOptions {
+  /**
+   * Connect-time checks (protocol version, tombstone, token). Defaults to letting every
+   * connection edit, for tests that are not about auth.
+   */
+  readonly authorize?: (noteId: string, params: URLSearchParams) => AuthResult;
   /** Loads a note's saved state (null if the server has never seen it). */
   readonly loadNote?: (noteId: string) => Promise<Uint8Array | null>;
   readonly timers?: Timers;
@@ -47,6 +53,7 @@ export class SyncEndpoint {
   private readonly maxBufferedBytes: number;
   private readonly saveNote: (noteId: string, state: Uint8Array, schemaVersion: number) => void;
   private readonly saveDebounceMs: number;
+  private readonly authorize: (noteId: string, params: URLSearchParams) => AuthResult;
 
   constructor(options: SyncOptions = {}) {
     this.timers = options.timers ?? realTimers;
@@ -55,6 +62,8 @@ export class SyncEndpoint {
     this.maxBufferedBytes = options.maxBufferedBytes ?? 64 * 1024 * 1024;
     this.saveNote = options.saveNote ?? (() => undefined);
     this.saveDebounceMs = options.saveDebounceMs ?? 2000;
+    this.authorize =
+      options.authorize ?? (() => ({ ok: true, grant: { tokenId: 0, role: "edit" } }));
     this.pingTimer = this.timers.setInterval(this.pingAll, options.pingIntervalMs ?? 30_000);
   }
 
@@ -74,18 +83,29 @@ export class SyncEndpoint {
   }
 
   private readonly onUpgrade = (req: IncomingMessage, socket: Duplex, head: Buffer): void => {
-    const { pathname } = new URL(req.url ?? "/", "http://localhost");
+    const { pathname, searchParams } = new URL(req.url ?? "/", "http://localhost");
     const noteId = SYNC_PATH.exec(pathname)?.[1];
     if (noteId === undefined || !isNoteId(noteId)) {
       socket.end("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
       return;
     }
+    // Accept the WebSocket first, then refuse with a close code: browsers cannot read why
+    // an upgrade failed, but they do receive close codes.
     this.wss.handleUpgrade(req, socket, head, (ws) => {
-      this.onConnection(ws, noteId);
+      const auth = this.authorize(noteId, searchParams);
+      if (!auth.ok) {
+        ws.close(auth.closeCode);
+        return;
+      }
+      this.onConnection(ws, noteId, auth.grant);
     });
   };
 
-  private onConnection(ws: WebSocket, noteId: string): void {
+  private onConnection(
+    ws: WebSocket,
+    noteId: string,
+    grant: { tokenId: number; role: Role },
+  ): void {
     ws.binaryType = "nodebuffer";
     this.alive.set(ws, true);
     ws.on("pong", () => this.alive.set(ws, true));
@@ -111,7 +131,7 @@ export class SyncEndpoint {
       (loaded) => {
         if (closed) return;
         room = loaded;
-        room.join(ws);
+        room.join(ws, grant);
         // Nothing unsaved: the room's state *is* the saved state, so acknowledge it now.
         // Otherwise a client with nothing new would never see an ack.
         if (!room.dirty) room.sendTo(ws, encodeAckMessage(room.doc));

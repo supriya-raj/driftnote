@@ -31,12 +31,12 @@ afterEach(async () => {
 const eventually = (assertion: () => void): Promise<void> =>
   vi.waitFor(assertion, { timeout: 3000, interval: 20 });
 
-function rowExists(noteId: string): boolean {
-  return (
-    server.db
-      .prepare<[string], { n: number }>("SELECT count(*) AS n FROM notes WHERE note_id = ?")
-      .get(noteId)?.n === 1
-  );
+/** Whether the saved state contains `text` (the row itself exists from the owner claim). */
+function savedContains(noteId: string, text: string): boolean {
+  const row = server.db
+    .prepare<[string], { state: Buffer }>("SELECT state FROM notes WHERE note_id = ?")
+    .get(noteId);
+  return row ? Buffer.from(row.state).includes(text) : false;
 }
 
 describe("save acknowledgement", () => {
@@ -51,13 +51,13 @@ describe("save acknowledgement", () => {
       expect(server.sync.rooms.get(noteId)?.doc.getText("t").toJSON()).toBe("precious words");
     });
     expect(a.acks.length).toBe(acksBefore); // received but not saved: no ack yet
-    expect(rowExists(noteId)).toBe(false);
+    expect(savedContains(noteId, "precious words")).toBe(false);
 
     timers.advance(SAVE_MS);
     await eventually(() => {
       expect(a.acks.length).toBe(acksBefore + 1);
     });
-    expect(rowExists(noteId)).toBe(true);
+    expect(savedContains(noteId, "precious words")).toBe(true);
     const latest = a.acks.at(-1);
     expect(latest && ackCovers(a.doc, latest)).toBe(true);
   });
