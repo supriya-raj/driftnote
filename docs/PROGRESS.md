@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T36: tabs (two tabs of one note stay in sync while offline; approach per S20).
+T37: security headers (CSP `script-src 'self'`, `Referrer-Policy: no-referrer`, HSTS over HTTPS).
 
 ## Task status
 
@@ -43,7 +43,7 @@ T36: tabs (two tabs of one note stay in sync while offline; approach per S20).
 | 2 | T33 | Presence | done |
 | 2 | T34 | Share dialog + link opening | done |
 | 2 | T35 | View-only client | done |
-| 2 | T36 | Tabs | todo |
+| 2 | T36 | Tabs | done |
 | 2 | T37 | Security headers | todo |
 | 2 | T38 | Close M2 | todo |
 | 3 | S40 | Spike: offline WebSockets in Playwright | todo |
@@ -353,3 +353,8 @@ Cursors now shown on read-only copies too (positions are Yjs item IDs; T17's not
 wrong). Tests `e2e/view-only.spec.ts` (injected change never reaches the owner; barrier =
 viewer's name change). Screen 12 (view only). For T43: "Delete note" for a non-owner only
 removes the note from this browser; label it accordingly.
+T36 done: no code change needed: `y-websocket`'s BroadcastChannel (kept on in T32) syncs
+tabs while the server is unreachable, as S20 predicted. `e2e/tabs.spec.ts` (two pages in
+one context, all sync sockets closed via `context.routeWebSocket`) passed at once and was
+verified by sabotage (`disableBc: true` makes it fail). Confirms S20's caveat in a real
+browser.

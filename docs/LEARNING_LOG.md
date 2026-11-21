@@ -71,6 +71,7 @@ edit in one "tab" reached the other. Only an explicit `provider.disconnect()` st
 the client must not call `disconnect()` just because the network dropped. Caveat: the
 check ran two providers in one Node process, where lib0 delivers to same-context
 subscribers directly; T36's e2e test with two real tabs covers the cross-tab path.
+Confirmed in real browser tabs by T36's e2e test (fails with `disableBc: true`).
 Also useful for T32: 3.1 has a `shouldReconnect(event)` option and a `closed` event with
 the close code, for terminal codes like 4401/4410.
 
