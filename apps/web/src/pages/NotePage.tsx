@@ -80,6 +80,7 @@ export function NotePage() {
       if (isCancelled()) return;
       const access = await ensureAccess(noteId);
       if (isCancelled()) return;
+      note.setRole(access.role); // a viewer's browser never writes to the note
       stopListSync = keepListEntryInSync(note);
       sync = new NoteSync(note, access);
       setCurrentNote(note);
@@ -107,6 +108,12 @@ export function NotePage() {
         {state.kind === "open" && (
           <div className="note-toolbar-actions">
             <PeopleHere sync={state.sync} />
+            {state.access.role === "view" && (
+              <span className="role-chip" title="You can read this note but not change it">
+                <Icon name="eye" size={14} />
+                View only
+              </span>
+            )}
             <SyncStatus note={state.note} sync={state.sync} />
             {state.access.role === "owner" && <ShareButton open={state} />}
             <DeleteNoteButton note={state.note} />

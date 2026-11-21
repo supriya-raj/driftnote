@@ -24,23 +24,21 @@ export function NoteEditor({ note, sync }: { note: OpenNote; sync: NoteSync }) {
   // avoids rebuilding the editor whenever the name changes.
   const [initialUser] = useState(identity);
   const awareness = sync.provider.awareness;
-  // The server sends a joining client everyone's cursors only after the content (see
-  // Room.receiveSync): a cursor pointing into content the editor has not drawn yet makes
-  // the cursor plugin throw ("position out of range") and stops the content rendering.
-  const showCursors = fragment === note.content;
   const editor = useCreateBlockNote(
     {
       schema: noteSchema,
       links: { isValidLink: isSafeLinkHref, onClick: openLinkSafely },
       // The editor reads and writes the note's Y.XmlFragment directly (ADR 003), and
-      // shares cursors through the sync provider's awareness. A read-only copy (a gated
-      // note) shares no cursor: its positions would refer to the copy, not the note.
+      // shares cursors through the sync provider's awareness. Cursor positions are Yjs
+      // item IDs, so they also work on a read-only copy (an exact replica). The server
+      // sends cursors only after the content (Room.sendPresenceOnce): a cursor pointing
+      // into content not drawn yet makes the cursor plugin throw.
 
       extensions: [
         CollaborationExtension({
           fragment,
           user: { name: initialUser.name, color: initialUser.color },
-          ...(showCursors ? { provider: { awareness } } : {}),
+          provider: { awareness },
         }),
       ],
     },

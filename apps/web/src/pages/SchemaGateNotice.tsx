@@ -1,9 +1,9 @@
 import { Icon } from "../components/Icon";
 import type { OpenNote } from "../notes/noteDoc";
-import { useNoteEditable } from "../notes/useNoteEditable";
+import { useSchemaSupported } from "../notes/useNoteEditable";
 
 export function SchemaGateNotice({ note }: { note: OpenNote }) {
-  if (useNoteEditable(note)) return null;
+  if (useSchemaSupported(note)) return null;
   return (
     <div role="alert" className="notice notice-info note-notice">
       <Icon name="lock" />

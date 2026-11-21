@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T35: view-only client (read-only editor for the view role; an injected update never reaches the owner).
+T36: tabs (two tabs of one note stay in sync while offline; approach per S20).
 
 ## Task status
 
@@ -42,7 +42,7 @@ T35: view-only client (read-only editor for the view role; an injected update ne
 | 2 | T32 | Client sync wiring | done |
 | 2 | T33 | Presence | done |
 | 2 | T34 | Share dialog + link opening | done |
-| 2 | T35 | View-only client | todo |
+| 2 | T35 | View-only client | done |
 | 2 | T36 | Tabs | todo |
 | 2 | T37 | Security headers | todo |
 | 2 | T38 | Close M2 | todo |
@@ -346,3 +346,10 @@ step-1 reply (`sendPresenceOnce`). Web: `src/presence/identity.ts` (name + colou
 `CollaborationExtension` gets the provider's awareness (not for gated read-only copies);
 identity changes go straight to awareness. Tests `test/presence.int.test.ts` (spoofing,
 content-before-cursors order), `e2e/presence.spec.ts`; screens 10 (presence), 11 (profile).
+T35 done: `OpenNote.setRole`; `isEditable` = supported schema and not a viewer;
+`isSchemaSupported` (used by `SchemaGateNotice`, `useSchemaSupported`). Viewers: editor
+bound to the read-only copy, title read-only, no `updatedAt` writes, "View only" chip.
+Cursors now shown on read-only copies too (positions are Yjs item IDs; T17's note was
+wrong). Tests `e2e/view-only.spec.ts` (injected change never reaches the owner; barrier =
+viewer's name change). Screen 12 (view only). For T43: "Delete note" for a non-owner only
+removes the note from this browser; label it accordingly.

@@ -1,4 +1,4 @@
-import { NOTE_CONTENT_KEY, NOTE_META_KEY, NOTE_SCHEMA_VERSION } from "@driftnote/shared";
+import { NOTE_CONTENT_KEY, NOTE_META_KEY, NOTE_SCHEMA_VERSION, type Role } from "@driftnote/shared";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 
@@ -36,6 +36,7 @@ export class OpenNote {
 
   private readonly persistence: IndexeddbPersistence;
   private state: LocalState = "loading";
+  private role: Role = "owner";
   private pendingSaves = 0;
   private changedBeforeLoad = false;
   private readonly listeners = new Set<() => void>();
@@ -62,7 +63,17 @@ export class OpenNote {
    * (ADR 012). Such a note is read-only: editing it could damage content we cannot see.
    */
   get isEditable(): boolean {
+    return this.isSchemaSupported && this.role !== "view";
+  }
+
+  /** False when the note uses a newer document schema than this app understands. */
+  get isSchemaSupported(): boolean {
     return (readMeta(this)?.schemaVersion ?? NOTE_SCHEMA_VERSION) <= NOTE_SCHEMA_VERSION;
+  }
+
+  /** What this browser may do with the note (from its token); set before showing it. */
+  setRole(role: Role): void {
+    this.role = role;
   }
 
   /**

@@ -71,6 +71,7 @@ for (const scheme of ["light", "dark"] as const) {
         await share.getByRole("list", { name: "Links" }).getByRole("listitem").nth(1).waitFor();
         await shot(page, `${prefix}-09-share`);
         const link = await share.getByRole("textbox", { name: /can edit/ }).inputValue();
+        const viewLink = await share.getByRole("textbox", { name: /can view/ }).inputValue();
         await share.getByRole("button", { name: "Close" }).click();
 
         // A second person joins and types, so the first sees their avatar and cursor.
@@ -91,6 +92,15 @@ for (const scheme of ["light", "dark"] as const) {
         await page.mouse.move(0, 0);
         await shot(page, `${prefix}-10-presence`);
         await bobContext.close();
+
+        // What someone with a view link sees.
+        const viewerContext = await browser.newContext({ colorScheme: scheme, viewport });
+        const viewer = await viewerContext.newPage();
+        await viewer.goto(viewLink);
+        await viewer.getByText("View only").waitFor();
+        await viewer.getByTestId("note-editor").getByText("Plan").waitFor();
+        await shot(viewer, `${prefix}-12-view-only`);
+        await viewerContext.close();
 
         await page.goto("/"); // the profile button lives in the sidebar
         await page.getByRole("button", { name: /^You:/ }).click();
