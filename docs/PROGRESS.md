@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T23: database + migrations (decide `node:sqlite` vs `better-sqlite3`).
+T24: rooms + sync relay (WebSocket endpoint `/sync/:noteId`, auth stubbed open).
 
 ## Task status
 
@@ -30,7 +30,7 @@ T23: database + migrations (decide `node:sqlite` vs `better-sqlite3`).
 | 2 | S20 | Spike: tabs + unknown blocks | done |
 | 2 | T21 | M2 acceptance test | done |
 | 2 | T22 | Single origin | done |
-| 2 | T23 | Database + migrations | todo |
+| 2 | T23 | Database + migrations | done |
 | 2 | T24 | Rooms + sync relay | todo |
 | 2 | T25 | Room robustness | todo |
 | 2 | T26 | Persistence | todo |
@@ -113,6 +113,13 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   light/dark from the OS, Inter, inline SVG icons, two-pane layout; `pnpm shots` for
   visual review. ESLint `no-confusing-void-expression` allows arrow shorthand
   (`onClick={() => setOpen(false)}`).
+- 2026-11-21: SQLite via `better-sqlite3` 13 (ADR 008 rule: built-in `node:sqlite` only if
+  stable). Node 26 docs mark `node:sqlite` "1.2 Release candidate" (and just renamed
+  `DatabaseSync` to `Database`). `better-sqlite3` ships prebuilt Node-API binaries, so no
+  install script runs. All access goes through `src/db/database.ts` for an easy switch later.
+- 2026-11-21: SQLite settings: WAL, `synchronous=FULL` (the `ack` means "on disk"),
+  `foreign_keys=ON`. In T28 the owner claim must create the `notes` row (empty state) before
+  the token row, because `tokens.note_id` references `notes`.
 
 ## Open questions
 - To answer by spike: Playwright offline emulation of WebSockets (S40).
@@ -120,7 +127,6 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   bumps `PROTOCOL_VERSION`, so the server refuses outdated clients that would delete
   unknown blocks (S20 finding). Not urgent: no block types are added before then.
 - `ack` message encoding: designed in T27.
-- Whether built-in `node:sqlite` is stable in the pinned Node version: decided in T23.
 - The architecture puts this browser's token and role in the note-list store, but that
   store is a droppable cache. Decide in T32: keep tokens in a separate, never-dropped store.
 - Bundle size: main JS chunk is 1.4 MB (440 kB gzipped), mostly BlockNote, plus ~25 locale
@@ -227,3 +233,8 @@ immutable, everything else `no-cache`. Unknown routes return JSON 404. Playwrigh
 one server (build in test mode, then sync server with `STATIC_DIR`, port 4100). Vite dev
 proxies `/api`, `/healthz`, `/sync` (ws) to :4000. Traversal test sends raw paths with
 `node:http` and was verified to fail when the containment check is removed.
+T23 done: `src/db/database.ts` (`openDatabase(path)`: pragmas + forward-only migrations, each
+file in its own transaction with its `schema_migrations` row), `src/db/migrations/
+001_initial.sql` (notes, tokens, tombstones, snapshots; CHECK constraints on role/kind).
+Server option `databasePath` (default `:memory:`), env `DATABASE_PATH` (default
+`data/driftnote.sqlite`); Playwright uses a fresh temp file per run. Tests `test/db.int.test.ts`.

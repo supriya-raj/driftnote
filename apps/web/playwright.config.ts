@@ -1,4 +1,5 @@
-import { resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 const SERVER_PORT = 4100;
@@ -38,7 +39,12 @@ export default defineConfig({
   webServer: {
     command: "pnpm exec vite build --mode test && pnpm --filter @driftnote/sync-server start",
     url: `http://127.0.0.1:${SERVER_PORT}/healthz`,
-    env: { PORT: String(SERVER_PORT), STATIC_DIR: resolve(import.meta.dirname, "dist") },
+    env: {
+      PORT: String(SERVER_PORT),
+      STATIC_DIR: resolve(import.meta.dirname, "dist"),
+      // A fresh database per run, so runs never share state.
+      DATABASE_PATH: join(tmpdir(), `driftnote-e2e-${String(Date.now())}.sqlite`),
+    },
     reuseExistingServer: false,
     timeout: 120_000,
   },

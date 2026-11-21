@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { openDatabase, type Db } from "./db/database";
 import { serveStatic } from "./static";
 
 export interface ServerOptions {
@@ -7,11 +8,14 @@ export interface ServerOptions {
   readonly host?: string;
   /** Folder with the built web app to serve on the same origin (ADR 010). */
   readonly staticDir?: string;
+  /** SQLite file; defaults to an in-memory database (tests that do not need persistence). */
+  readonly databasePath?: string;
 }
 
 export interface RunningServer {
   /** The port actually bound (useful when `port: 0` was requested). */
   readonly port: number;
+  readonly db: Db;
   close(): Promise<void>;
 }
 
@@ -35,6 +39,7 @@ async function handleRequest(
 }
 
 export async function startServer(options: ServerOptions): Promise<RunningServer> {
+  const db = openDatabase(options.databasePath ?? ":memory:");
   const http = createServer((req, res) => {
     handleRequest(options, req, res).catch((err: unknown) => {
       console.error("request failed", err);
@@ -58,12 +63,15 @@ export async function startServer(options: ServerOptions): Promise<RunningServer
 
   return {
     port: address.port,
-    close: () =>
-      new Promise<void>((resolve, reject) => {
+    db,
+    close: async () => {
+      await new Promise<void>((resolve, reject) => {
         http.close((err) => {
           if (err) reject(err);
           else resolve();
         });
-      }),
+      });
+      db.close();
+    },
   };
 }
