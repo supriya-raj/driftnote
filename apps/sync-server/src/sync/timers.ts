@@ -6,6 +6,8 @@ export interface Timers {
   setTimeout(fn: () => void, ms: number): unknown;
   setInterval(fn: () => void, ms: number): unknown;
   clear(handle: unknown): void;
+  /** Current time in milliseconds. */
+  now(): number;
 }
 
 export const realTimers: Timers = {
@@ -14,4 +16,5 @@ export const realTimers: Timers = {
   clear: (handle) => {
     clearTimeout(handle as NodeJS.Timeout);
   },
+  now: () => Date.now(),
 };

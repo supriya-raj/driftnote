@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T30: limits (document 20 MB / message 24 MB → 4413; update rate → 4429; per-IP connections).
+T31: token REST API (`POST/GET/DELETE /api/notes/:id/tokens`, owner-only; revoke disconnects).
 
 ## Task status
 
@@ -37,7 +37,7 @@ T30: limits (document 20 MB / message 24 MB → 4413; update rate → 4429; per-
 | 2 | T27 | Save acknowledgement | done |
 | 2 | T28 | Connect-time auth | done |
 | 2 | T29 | Role filter | done |
-| 2 | T30 | Limits | todo |
+| 2 | T30 | Limits | done |
 | 2 | T31 | Token REST API | todo |
 | 2 | T32 | Client sync wiring | todo |
 | 2 | T33 | Presence | todo |
@@ -291,3 +291,11 @@ and updates applied only for owner/edit (view: dropped silently; unknown subtype
 socket closed 1003). Tests `test/roles.int.test.ts`: all 12 role × message cases with raw
 `ws` sockets and hand-built messages (awareness barrier for "dropped"), viewer receives live
 edits, viewer's local edits reach nobody.
+T30 done: `src/sync/limits.ts` (`DEFAULT_LIMITS`: document 20 MB, message 24 MB, 60
+updates/s with burst 200, 50 connections per IP; `TokenBucket`; `LimitError` with close
+code). Message size checked before handling (4413); `ws` `maxPayload` = 2 × limit as a
+memory net only (its own close code is 1009). Room checks rate and size *before* applying a
+change; size uses a running upper-bound estimate (exact after save/load) and re-encodes
+only when near the limit. Per-IP count at upgrade (4429). `Timers.now()` added. Tests
+`test/limits.int.test.ts` (legal 50 KB catch-up accepted; apply-before-check verified to
+fail by sabotage).

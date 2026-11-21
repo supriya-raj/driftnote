@@ -13,7 +13,7 @@ interface Scheduled {
  * inside the WebSocket and Yjs libraries.
  */
 export class ManualTimers implements Timers {
-  private now = 0;
+  private clock = 0;
   private nextId = 1;
   private readonly scheduled = new Map<number, Scheduled>();
 
@@ -25,29 +25,33 @@ export class ManualTimers implements Timers {
     return this.add(fn, ms, ms);
   }
 
+  now(): number {
+    return this.clock;
+  }
+
   clear(id: number): void {
     this.scheduled.delete(id);
   }
 
   /** Moves time forward, running everything that falls due, in order. */
   advance(ms: number): void {
-    const end = this.now + ms;
+    const end = this.clock + ms;
     for (;;) {
       const due = [...this.scheduled.values()]
         .filter((s) => s.at <= end)
         .sort((a, b) => a.at - b.at)[0];
       if (!due) break;
-      this.now = due.at;
+      this.clock = due.at;
       if (due.every === null) this.scheduled.delete(due.id);
       else due.at += due.every;
       due.fn();
     }
-    this.now = end;
+    this.clock = end;
   }
 
   private add(fn: () => void, ms: number, every: number | null): number {
     const id = this.nextId++;
-    this.scheduled.set(id, { id, at: this.now + ms, fn, every });
+    this.scheduled.set(id, { id, at: this.clock + ms, fn, every });
     return id;
   }
 }

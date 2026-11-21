@@ -1,9 +1,16 @@
-import { encodeAckMessage, isNoteId, type Role } from "@driftnote/shared";
+import {
+  CLOSE_RATE_LIMITED,
+  CLOSE_TOO_LARGE,
+  encodeAckMessage,
+  isNoteId,
+  type Role,
+} from "@driftnote/shared";
 import type { IncomingMessage, Server } from "node:http";
 import type { Duplex } from "node:stream";
 import { WebSocketServer, type RawData, type WebSocket } from "ws";
 import * as Y from "yjs";
 import type { AuthResult } from "./auth";
+import { DEFAULT_LIMITS, LimitError, TokenBucket, type Limits } from "./limits";
 import { Room, STORAGE_ORIGIN } from "./room";
 import { realTimers, type Timers } from "./timers";
 
@@ -31,6 +38,8 @@ export interface SyncOptions {
    * and is not pushed back by later ones, so continuous typing still gets saved.
    */
   readonly saveDebounceMs?: number;
+  /** Abuse limits (ADR 011); defaults in `limits.ts`. */
+  readonly limits?: Partial<Limits>;
 }
 
 /**
@@ -45,7 +54,9 @@ export class SyncEndpoint {
   private readonly unloadTimers = new Map<string, unknown>();
   private readonly saveTimers = new Map<Room, unknown>();
   private readonly alive = new WeakMap<WebSocket, boolean>();
-  private readonly wss = new WebSocketServer({ noServer: true });
+  private readonly wss: WebSocketServer;
+  private readonly limits: Limits;
+  private readonly connectionsByIp = new Map<string, number>();
   private readonly timers: Timers;
   private readonly pingTimer: unknown;
   private readonly loadNote: (noteId: string) => Promise<Uint8Array | null>;
@@ -56,6 +67,11 @@ export class SyncEndpoint {
   private readonly authorize: (noteId: string, params: URLSearchParams) => AuthResult;
 
   constructor(options: SyncOptions = {}) {
+    this.limits = { ...DEFAULT_LIMITS, ...options.limits };
+    // `ws` closes over-sized messages itself with code 1009, which our client does not
+    // know. Its cap is only a memory safety net at twice our limit; our own check (in
+    // onConnection) closes with 4413 first.
+    this.wss = new WebSocketServer({ noServer: true, maxPayload: 2 * this.limits.maxMessageBytes });
     this.timers = options.timers ?? realTimers;
     this.loadNote = options.loadNote ?? (() => Promise.resolve(null));
     this.unloadGraceMs = options.unloadGraceMs ?? 30_000;
@@ -91,7 +107,20 @@ export class SyncEndpoint {
     }
     // Accept the WebSocket first, then refuse with a close code: browsers cannot read why
     // an upgrade failed, but they do receive close codes.
+    const ip = req.socket.remoteAddress ?? "unknown";
     this.wss.handleUpgrade(req, socket, head, (ws) => {
+      const open = this.connectionsByIp.get(ip) ?? 0;
+      if (open >= this.limits.connectionsPerIp) {
+        ws.close(CLOSE_RATE_LIMITED);
+        return;
+      }
+      this.connectionsByIp.set(ip, open + 1);
+      ws.once("close", () => {
+        const left = (this.connectionsByIp.get(ip) ?? 1) - 1;
+        if (left > 0) this.connectionsByIp.set(ip, left);
+        else this.connectionsByIp.delete(ip);
+      });
+
       const auth = this.authorize(noteId, searchParams);
       if (!auth.ok) {
         ws.close(auth.closeCode);
@@ -119,6 +148,10 @@ export class SyncEndpoint {
       this.alive.set(ws, true); // any traffic proves the connection is alive, not only pongs
       if (!isBinary) return; // the protocol is binary only
       const message = toUint8Array(data);
+      if (message.length > this.limits.maxMessageBytes) {
+        ws.close(CLOSE_TOO_LARGE);
+        return;
+      }
       if (room) this.deliver(room, ws, message);
       else queue.push(message);
     });
@@ -131,7 +164,13 @@ export class SyncEndpoint {
       (loaded) => {
         if (closed) return;
         room = loaded;
-        room.join(ws, grant);
+        room.join(
+          ws,
+          grant,
+          new TokenBucket(this.limits.updateBurst, this.limits.updatesPerSecond, () =>
+            this.timers.now(),
+          ),
+        );
         // Nothing unsaved: the room's state *is* the saved state, so acknowledge it now.
         // Otherwise a client with nothing new would never see an ack.
         if (!room.dirty) room.sendTo(ws, encodeAckMessage(room.doc));
@@ -148,6 +187,10 @@ export class SyncEndpoint {
     try {
       room.receive(ws, message);
     } catch (err) {
+      if (err instanceof LimitError) {
+        ws.close(err.closeCode);
+        return;
+      }
       // A malformed message must not take the room down for everyone else.
       console.warn(`sync: dropped malformed message: ${String(err)}`);
       ws.close(1003, "malformed message");
@@ -168,8 +211,14 @@ export class SyncEndpoint {
 
     const load = this.loadNote(noteId)
       .then((state) => {
-        const room = new Room(noteId, { maxBufferedBytes: this.maxBufferedBytes });
-        if (state) Y.applyUpdate(room.doc, state, STORAGE_ORIGIN);
+        const room = new Room(noteId, {
+          maxBufferedBytes: this.maxBufferedBytes,
+          maxDocumentBytes: this.limits.maxDocumentBytes,
+        });
+        if (state) {
+          Y.applyUpdate(room.doc, state, STORAGE_ORIGIN);
+          room.setEncodedSize(state.length);
+        }
         room.onChange = () => this.scheduleSave(room);
         this.rooms.set(noteId, room);
         return room;
@@ -220,6 +269,7 @@ export class SyncEndpoint {
       const state = Y.encodeStateAsUpdate(room.doc);
       const ack = encodeAckMessage(room.doc);
       this.saveNote(room.noteId, state, room.schemaVersion);
+      room.setEncodedSize(state.length);
       room.broadcast(ack);
     } catch (err) {
       room.dirty = true;

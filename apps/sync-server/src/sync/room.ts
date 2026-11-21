@@ -1,10 +1,18 @@
-import { MESSAGE_AWARENESS, MESSAGE_SYNC, NOTE_META_KEY, type Role } from "@driftnote/shared";
+import {
+  CLOSE_RATE_LIMITED,
+  CLOSE_TOO_LARGE,
+  MESSAGE_AWARENESS,
+  MESSAGE_SYNC,
+  NOTE_META_KEY,
+  type Role,
+} from "@driftnote/shared";
 import * as decoding from "lib0/decoding";
 import * as encoding from "lib0/encoding";
 import type { WebSocket } from "ws";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as syncProtocol from "y-protocols/sync";
 import * as Y from "yjs";
+import { LimitError, TokenBucket } from "./limits";
 
 /** Transaction origin for state loaded from the database (no need to save it again). */
 export const STORAGE_ORIGIN = "storage";
@@ -15,6 +23,8 @@ export interface Connection {
   /** Which token this connection used (for revocation) and what it may do. */
   readonly tokenId: number;
   readonly role: Role;
+  /** Update rate limit for this connection (ADR 011). */
+  readonly updates: TokenBucket;
   /** Presence client IDs this connection controls, removed for everyone when it closes. */
   readonly awarenessIds: Set<number>;
 }
@@ -40,12 +50,20 @@ export class Room {
   onChange: () => void = () => undefined;
 
   private readonly maxBufferedBytes: number;
+  private readonly maxDocumentBytes: number;
+  /**
+   * Upper bound on the note's encoded size: exact after each save, plus the size of every
+   * update applied since. Merging only shrinks things, so this never under-counts, and it
+   * avoids re-encoding the whole note on every keystroke.
+   */
+  private estimatedBytes = 0;
 
   constructor(
     readonly noteId: string,
-    options: { maxBufferedBytes?: number } = {},
+    options: { maxBufferedBytes?: number; maxDocumentBytes?: number } = {},
   ) {
     this.maxBufferedBytes = options.maxBufferedBytes ?? Number.POSITIVE_INFINITY;
+    this.maxDocumentBytes = options.maxDocumentBytes ?? Number.POSITIVE_INFINITY;
     // The server relays presence; it is not a participant itself.
     this.awareness.setLocalState(null);
     this.doc.on("update", this.onDocUpdate);
@@ -63,8 +81,8 @@ export class Room {
   }
 
   /** Adds a connection and starts the sync handshake with it. */
-  join(socket: WebSocket, grant: { tokenId: number; role: Role }): void {
-    this.connections.set(socket, { socket, ...grant, awarenessIds: new Set() });
+  join(socket: WebSocket, grant: { tokenId: number; role: Role }, updates: TokenBucket): void {
+    this.connections.set(socket, { socket, ...grant, updates, awarenessIds: new Set() });
 
     // "Here is what I have": the client answers with what the server is missing (step 2)
     // and sends its own step 1, which the server answers with what the client is missing.
@@ -117,15 +135,38 @@ export class Room {
         break;
       }
       case syncProtocol.messageYjsSyncStep2:
+      case syncProtocol.messageYjsUpdate: {
+        const update = decoding.readVarUint8Array(decoder);
+        if (!canWrite) break;
+        this.checkLimits(socket, update);
         // The socket is the origin, so the change is forwarded to everyone else.
-        if (canWrite) syncProtocol.readSyncStep2(decoder, this.doc, socket);
+        Y.applyUpdate(this.doc, update, socket);
+        this.estimatedBytes += update.length;
         break;
-      case syncProtocol.messageYjsUpdate:
-        if (canWrite) syncProtocol.readUpdate(decoder, this.doc, socket);
-        break;
+      }
       default:
         throw new Error(`Unknown sync message type ${String(subtype)}`);
     }
+  }
+
+  /** Rejects (before applying) a change that would break the rate or size limit. */
+  private checkLimits(socket: WebSocket, update: Uint8Array): void {
+    if (this.connections.get(socket)?.updates.take() === false) {
+      throw new LimitError(CLOSE_RATE_LIMITED, "update rate limit");
+    }
+    if (this.estimatedBytes + update.length > this.maxDocumentBytes) {
+      // Exact check before refusing: the running estimate may over-count.
+      const exact = Y.encodeStateAsUpdate(this.doc).length;
+      this.estimatedBytes = exact;
+      if (exact + update.length > this.maxDocumentBytes) {
+        throw new LimitError(CLOSE_TOO_LARGE, "document size limit");
+      }
+    }
+  }
+
+  /** Records the exact encoded size after a save or load. */
+  setEncodedSize(bytes: number): void {
+    this.estimatedBytes = bytes;
   }
 
   /** Sends one message to every connection in the room. */
