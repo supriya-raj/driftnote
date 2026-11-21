@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { openDatabase, type Db } from "./db/database";
 import { serveStatic } from "./static";
+import { SyncEndpoint } from "./sync/syncEndpoint";
 
 export interface ServerOptions {
   /** Port to listen on; 0 picks any free port (used by tests). */
@@ -16,6 +17,7 @@ export interface RunningServer {
   /** The port actually bound (useful when `port: 0` was requested). */
   readonly port: number;
   readonly db: Db;
+  readonly sync: SyncEndpoint;
   close(): Promise<void>;
 }
 
@@ -40,6 +42,7 @@ async function handleRequest(
 
 export async function startServer(options: ServerOptions): Promise<RunningServer> {
   const db = openDatabase(options.databasePath ?? ":memory:");
+  const sync = new SyncEndpoint();
   const http = createServer((req, res) => {
     handleRequest(options, req, res).catch((err: unknown) => {
       console.error("request failed", err);
@@ -47,6 +50,8 @@ export async function startServer(options: ServerOptions): Promise<RunningServer
       res.end();
     });
   });
+
+  sync.attach(http);
 
   await new Promise<void>((resolve, reject) => {
     http.once("error", reject);
@@ -64,7 +69,9 @@ export async function startServer(options: ServerOptions): Promise<RunningServer
   return {
     port: address.port,
     db,
+    sync,
     close: async () => {
+      sync.close();
       await new Promise<void>((resolve, reject) => {
         http.close((err) => {
           if (err) reject(err);

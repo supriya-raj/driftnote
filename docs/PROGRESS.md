@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-T24: rooms + sync relay (WebSocket endpoint `/sync/:noteId`, auth stubbed open).
+T25: room robustness (shared load, unload grace, queue during load, ping/terminate, slow consumers).
 
 ## Task status
 
@@ -31,7 +31,7 @@ T24: rooms + sync relay (WebSocket endpoint `/sync/:noteId`, auth stubbed open).
 | 2 | T21 | M2 acceptance test | done |
 | 2 | T22 | Single origin | done |
 | 2 | T23 | Database + migrations | done |
-| 2 | T24 | Rooms + sync relay | todo |
+| 2 | T24 | Rooms + sync relay | done |
 | 2 | T25 | Room robustness | todo |
 | 2 | T26 | Persistence | todo |
 | 2 | T27 | Save acknowledgement | todo |
@@ -238,3 +238,11 @@ file in its own transaction with its `schema_migrations` row), `src/db/migration
 001_initial.sql` (notes, tokens, tombstones, snapshots; CHECK constraints on role/kind).
 Server option `databasePath` (default `:memory:`), env `DATABASE_PATH` (default
 `data/driftnote.sqlite`); Playwright uses a fresh temp file per run. Tests `test/db.int.test.ts`.
+T24 done: `src/sync/room.ts` (`Room`: Y.Doc + Awareness + connections; sync step 1 on join;
+`readSyncMessage` with the socket as origin; the doc's update event forwards to all but the
+origin; presence IDs tracked per connection and removed on close) and
+`src/sync/syncEndpoint.ts` (`ws` in `noServer` mode on HTTP upgrade; `/sync/<noteId>` with
+`isNoteId` check, else 404; malformed message closes only that socket with 1003). Shared
+`MESSAGE_SYNC = 0`, `MESSAGE_AWARENESS = 1`. Test clients (`test/support/clients.ts`) are
+real `y-websocket` providers with `disableBc: true`. Tests `test/rooms.int.test.ts`
+(presence cleanup verified by sabotage). Auth still open (T28); no persistence yet (T26).

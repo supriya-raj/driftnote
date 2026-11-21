@@ -1,0 +1,140 @@
+import { MESSAGE_AWARENESS, MESSAGE_SYNC } from "@driftnote/shared";
+import * as decoding from "lib0/decoding";
+import * as encoding from "lib0/encoding";
+import type { WebSocket } from "ws";
+import * as awarenessProtocol from "y-protocols/awareness";
+import * as syncProtocol from "y-protocols/sync";
+import * as Y from "yjs";
+
+/** What the server knows about one connection (ARCHITECTURE.md, section 7.1). */
+export interface Connection {
+  readonly socket: WebSocket;
+  /** Presence client IDs this connection controls, removed for everyone when it closes. */
+  readonly awarenessIds: Set<number>;
+}
+
+interface AwarenessChange {
+  added: number[];
+  updated: number[];
+  removed: number[];
+}
+
+/**
+ * The in-memory meeting place for one note: the server's copy of the doc, presence, and
+ * the open connections. Changes are applied to `doc`; the doc's update event forwards each
+ * change to every other connection (the change's origin is the socket it came from).
+ */
+export class Room {
+  readonly doc = new Y.Doc();
+  readonly awareness = new awarenessProtocol.Awareness(this.doc);
+  readonly connections = new Map<WebSocket, Connection>();
+
+  constructor(readonly noteId: string) {
+    // The server relays presence; it is not a participant itself.
+    this.awareness.setLocalState(null);
+    this.doc.on("update", this.onDocUpdate);
+    this.awareness.on("update", this.onAwarenessUpdate);
+  }
+
+  get isEmpty(): boolean {
+    return this.connections.size === 0;
+  }
+
+  /** Adds a connection and starts the sync handshake with it. */
+  join(socket: WebSocket): void {
+    this.connections.set(socket, { socket, awarenessIds: new Set() });
+
+    // "Here is what I have": the client answers with what the server is missing (step 2)
+    // and sends its own step 1, which the server answers with what the client is missing.
+    const sync = encoding.createEncoder();
+    encoding.writeVarUint(sync, MESSAGE_SYNC);
+    syncProtocol.writeSyncStep1(sync, this.doc);
+    send(socket, encoding.toUint8Array(sync));
+
+    const states = this.awareness.getStates();
+    if (states.size > 0) {
+      send(socket, this.encodeAwareness([...states.keys()]));
+    }
+  }
+
+  /** Handles one binary message from a connection. */
+  receive(socket: WebSocket, message: Uint8Array): void {
+    const decoder = decoding.createDecoder(message);
+    const type = decoding.readVarUint(decoder);
+    switch (type) {
+      case MESSAGE_SYNC: {
+        const reply = encoding.createEncoder();
+        encoding.writeVarUint(reply, MESSAGE_SYNC);
+        // Applies step 2 / updates to the doc with the socket as origin, and writes a
+        // step 2 reply into `reply` when the message was a step 1.
+        syncProtocol.readSyncMessage(decoder, reply, this.doc, socket);
+        if (encoding.length(reply) > 1) send(socket, encoding.toUint8Array(reply));
+        break;
+      }
+      case MESSAGE_AWARENESS:
+        awarenessProtocol.applyAwarenessUpdate(
+          this.awareness,
+          decoding.readVarUint8Array(decoder),
+          socket,
+        );
+        break;
+      default:
+        // Unknown message types are ignored, so newer clients can add optional messages.
+        break;
+    }
+  }
+
+  /** Removes a connection and the presence it controlled. */
+  leave(socket: WebSocket): void {
+    const connection = this.connections.get(socket);
+    if (!connection) return;
+    this.connections.delete(socket);
+    awarenessProtocol.removeAwarenessStates(this.awareness, [...connection.awarenessIds], null);
+  }
+
+  destroy(): void {
+    this.doc.off("update", this.onDocUpdate);
+    this.awareness.off("update", this.onAwarenessUpdate);
+    this.awareness.destroy();
+    this.doc.destroy();
+  }
+
+  private readonly onDocUpdate = (update: Uint8Array, origin: unknown): void => {
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, MESSAGE_SYNC);
+    syncProtocol.writeUpdate(encoder, update);
+    const message = encoding.toUint8Array(encoder);
+    for (const socket of this.connections.keys()) {
+      if (socket !== origin) send(socket, message);
+    }
+  };
+
+  private readonly onAwarenessUpdate = (change: AwarenessChange, origin: unknown): void => {
+    const changed = [...change.added, ...change.updated, ...change.removed];
+    // Remember which presence entries each connection controls, for cleanup on close.
+    const connection =
+      origin !== null && typeof origin === "object"
+        ? this.connections.get(origin as WebSocket)
+        : undefined;
+    if (connection) {
+      for (const id of change.added) connection.awarenessIds.add(id);
+      for (const id of change.removed) connection.awarenessIds.delete(id);
+    }
+    const message = this.encodeAwareness(changed);
+    for (const socket of this.connections.keys()) send(socket, message);
+  };
+
+  private encodeAwareness(clientIds: number[]): Uint8Array {
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, MESSAGE_AWARENESS);
+    encoding.writeVarUint8Array(
+      encoder,
+      awarenessProtocol.encodeAwarenessUpdate(this.awareness, clientIds),
+    );
+    return encoding.toUint8Array(encoder);
+  }
+}
+
+function send(socket: WebSocket, message: Uint8Array): void {
+  if (socket.readyState === socket.OPEN) socket.send(message);
+}
