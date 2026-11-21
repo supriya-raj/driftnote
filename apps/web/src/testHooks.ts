@@ -20,23 +20,39 @@ export function installTestHooks(): void {
       note.doc.transact(() => note.meta.set("schemaVersion", version), TEST_REMOTE_ORIGIN);
     },
     injectLink(text, href) {
-      const note = getCurrentNote();
-      // BlockNote's ProseMirror tree: blockGroup > blockContainer > paragraph > text.
-      // y-prosemirror stores a mark as a text format attribute named after the mark.
-      const existing = note.content.length > 0 ? note.content.get(0) : null;
-      if (existing && !(existing instanceof Y.XmlElement)) throw new Error("Unexpected doc shape");
-      const blockGroup = existing ?? new Y.XmlElement("blockGroup");
-      const container = new Y.XmlElement("blockContainer");
-      const paragraph = new Y.XmlElement("paragraph");
-      const textNode = new Y.XmlText();
-      note.doc.transact(() => {
-        if (!existing) note.content.insert(0, [blockGroup]);
-        container.setAttribute("id", `test-${String(Date.now())}`);
-        paragraph.insert(0, [textNode]);
-        container.insert(0, [paragraph]);
-        blockGroup.push([container]);
-        textNode.insert(0, text, { link: { href } });
-      }, TEST_REMOTE_ORIGIN);
+      appendBlock("paragraph", (textNode) => textNode.insert(0, text, { link: { href } }));
+    },
+    injectBlock(type, text) {
+      appendBlock(type, (textNode) => textNode.insert(0, text));
+    },
+    storedContent() {
+      return getCurrentNote().content.toJSON(); // the XML string
     },
   };
+}
+
+let blockCounter = 0;
+
+/**
+ * Appends `blockContainer > <type> > text` to the open note's fragment in one transaction.
+ * BlockNote's ProseMirror tree is blockGroup > blockContainer > block > text, and
+ * y-prosemirror stores a mark as a text format attribute named after the mark.
+ */
+function appendBlock(type: string, fillText: (text: Y.XmlText) => void): void {
+  const note = getCurrentNote();
+  const existing = note.content.length > 0 ? note.content.get(0) : null;
+  if (existing && !(existing instanceof Y.XmlElement)) throw new Error("Unexpected doc shape");
+  const blockGroup = existing ?? new Y.XmlElement("blockGroup");
+  const container = new Y.XmlElement("blockContainer");
+  const block = new Y.XmlElement(type);
+  const textNode = new Y.XmlText();
+  note.doc.transact(() => {
+    if (!existing) note.content.insert(0, [blockGroup]);
+    blockCounter += 1;
+    container.setAttribute("id", `test-block-${String(blockCounter)}`);
+    block.insert(0, [textNode]);
+    container.insert(0, [block]);
+    blockGroup.push([container]);
+    fillText(textNode);
+  }, TEST_REMOTE_ORIGIN);
 }

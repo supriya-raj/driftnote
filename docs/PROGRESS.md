@@ -5,7 +5,7 @@
 2026-11-21. Phase 1 (M1) and T19 complete.
 
 ## Next action
-Fix T17's gate to render a disposable copy (S20 finding), then T21: M2 acceptance test.
+T21: M2 acceptance test (`e2e/m2-collab.spec.ts`, expected to fail).
 
 ## Task status
 
@@ -213,3 +213,7 @@ S20 done: learning-log entry. (1) `y-websocket` keeps offline tabs in sync throu
 `BroadcastChannel` unless `disconnect()` is called. (2) `y-prosemirror` deletes unknown
 block types from the Yjs doc on render, even when not editable; unknown attributes are
 kept. ADR 012 amendment proposed (not accepted). No spike code committed.
+T17 fix (after S20): a gated note's editor is bound to a disposable copy
+(`OpenNote.createReadOnlyCopy` + `forwardUpdatesTo`, one-way), so the editor's deletion of
+unknown blocks never reaches storage. Test hooks `injectBlock(type, text)` and
+`storedContent()`; regression test in `e2e/schema-gate.spec.ts`.

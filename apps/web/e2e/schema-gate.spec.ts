@@ -37,3 +37,27 @@ test("@M1 a note at the supported version stays editable", async ({ page }) => {
   await expect(editorBody(page)).toHaveAttribute("contenteditable", "true");
   await expect(gateMessage(page)).toHaveCount(0);
 });
+
+// S20 finding: the editor deletes block types it does not know from the shared document,
+// even when it is not editable. A gated note must never let that deletion be stored.
+test("@M1 a gated note never deletes content this app cannot display", async ({ page }) => {
+  await createNote(page, { text: "Original text" });
+  await page.evaluate(() => window.__driftnote?.setSchemaVersion(2));
+  await expect(gateMessage(page)).toBeVisible();
+
+  await page.evaluate(() => window.__driftnote?.injectBlock("callout", "From a newer app"));
+
+  // Still visible content updates arrive in the read-only view...
+  await page.evaluate(() => window.__driftnote?.injectBlock("paragraph", "A later paragraph"));
+  await expect(page.getByTestId("note-editor")).toContainText("A later paragraph");
+  // ...and the block it cannot display is still stored, not deleted.
+  await expect
+    .poll(() => page.evaluate(() => window.__driftnote?.storedContent() ?? ""))
+    .toContain("From a newer app");
+
+  await waitForLocalSave(page);
+  await page.reload();
+  await expect
+    .poll(() => page.evaluate(() => window.__driftnote?.storedContent() ?? ""))
+    .toContain("From a newer app");
+});

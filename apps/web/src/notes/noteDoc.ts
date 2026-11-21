@@ -65,6 +65,28 @@ export class OpenNote {
     return (readMeta(this)?.schemaVersion ?? NOTE_SCHEMA_VERSION) <= NOTE_SCHEMA_VERSION;
   }
 
+  /**
+   * A disposable copy of the note's document, for showing a note this app may not edit.
+   * The editor deletes block types it does not know from whatever document it is bound to
+   * (spike S20), so a gated note's editor gets a copy. Pair with `forwardUpdatesTo`.
+   */
+  createReadOnlyCopy(): Y.Doc {
+    const copy = new Y.Doc();
+    Y.applyUpdate(copy, Y.encodeStateAsUpdate(this.doc));
+    return copy;
+  }
+
+  /**
+   * Keeps `copy` up to date with this note, one way: nothing flows back. Catches up first,
+   * in case changes arrived since the copy was made. Returns an unsubscribe function.
+   */
+  forwardUpdatesTo(copy: Y.Doc): () => void {
+    Y.applyUpdate(copy, Y.encodeStateAsUpdate(this.doc, Y.encodeStateVector(copy)));
+    const forward = (update: Uint8Array): void => Y.applyUpdate(copy, update);
+    this.doc.on("update", forward);
+    return () => this.doc.off("update", forward);
+  }
+
   /** For React's `useSyncExternalStore`. */
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);

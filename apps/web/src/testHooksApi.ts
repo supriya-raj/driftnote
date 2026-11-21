@@ -11,6 +11,13 @@ export interface DriftnoteTestHooks {
    * directly, the way an update from another replica would arrive.
    */
   injectLink(text: string, href: string): void;
+  /**
+   * Appends a block of any type (for example one this app does not know) to the open note,
+   * the way an update from a newer app version would arrive.
+   */
+  injectBlock(type: string, text: string): void;
+  /** The open note's shared content as XML, i.e. what is stored and synced. */
+  storedContent(): string;
   /** Sets the open note's `meta.schemaVersion`, as a newer app version would. */
   setSchemaVersion(version: number): void;
 }
