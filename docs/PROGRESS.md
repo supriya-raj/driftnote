@@ -5,8 +5,8 @@
 complete.
 
 ## Next action
-README showcase (demo GIFs, owner request 2026-11-23), then state the **Phase 3** plan
-(offline conflict handling, S40 and T41-T47) in 5-10 lines and wait for the owner's OK.
+State the **Phase 3** plan (offline conflict handling, S40 and T41-T47) in 5-10 lines and
+wait for the owner's OK.
 
 ## Task status
 
@@ -150,6 +150,10 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   HSTS only over TLS or with `TRUST_PROXY=1` and `X-Forwarded-Proto: https`.
 
 ## Open questions
+- Suspected editor race (not confirmed): a cursor-only key press (End) by one person was
+  repeatedly lost in the recorded demo when another person moved their cursor at the
+  same instant; not reproduced in isolation (End worked with a remote cursor present;
+  concurrent typing is correct, see `m2-collab`). Revisit in M5 polish.
 - To answer by spike: Playwright offline emulation of WebSockets (S40). Also for S40: a
   rare WebKit failure (1 in ~200 runs) of "a note page loads offline, even when opened
   directly": `FetchEvent.respondWith received an error: TypeError: Load failed`, i.e. the
@@ -379,3 +383,10 @@ connections that passed auth but were still waiting for their note to load
 T38 done: `pnpm check` green; `pnpm e2e:all --grep "@M1|@M2"` 114/114. Tests with a
 second person (`bob` fixture) get double the total test budget (a loaded machine made
 Firefox exceed 30 s; per-step limits unchanged); `m2-collab` uses the fixture. M2 complete.
+README showcase (owner request, 2026-11-23): `pnpm demo` records the README media with
+Chromium's screencast (`e2e/visual/recorder.ts`) and encodes GIFs in-repo with `gifenc` +
+`pngjs` (`e2e/visual/gif.ts`; side-by-side windows, preview PNGs in
+`apps/web/screenshots/demo/` for review); demos assert their own result. Output in
+`docs/media/` (offline.gif, collaboration.gif, app-light.png, app-dark.png). README
+rewritten. New `@M2` test: two people typing at the same moment each keep their place.
+`controlSyncNetwork` now also closes open sync sockets on `block()` and accepts a context.

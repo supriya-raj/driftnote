@@ -65,3 +65,5 @@ beautiful**, in every task, not as a final polish pass.
 2. Look at the images: alignment, hierarchy, spacing, contrast, both themes, phone
    layout, long titles.
 3. e2e tests select by role and label, not by class, so restyling never breaks them.
+4. After visible changes, re-record the README media with `pnpm demo` (Chromium) and
+   review the preview frames it writes to `apps/web/screenshots/demo/`.

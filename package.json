@@ -20,7 +20,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm e2e",
-    "shots": "pnpm --filter @driftnote/web shots"
+    "shots": "pnpm --filter @driftnote/web shots",
+    "demo": "pnpm --filter @driftnote/web demo"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

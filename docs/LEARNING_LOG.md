@@ -5,6 +5,24 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-23: Recording demos for the README
+
+**GIFs without ffmpeg.** Chromium's DevTools screencast streams a PNG per repaint with a
+timestamp; `gifenc` (a CommonJS package: import its default export from an ES module)
+turns sampled frames into a GIF. Merging identical consecutive frames keeps a 10-second
+demo around 1 MB.
+
+**A demo is a test, so make it check itself.** The first recordings looked fine in the
+log but showed a title typed into the previous note (a race after "New note") and text
+inserted mid-word. Each was caught only by looking at the output. The demo now waits for
+the new note to open and asserts the final text, so a bad recording fails instead of
+being published.
+
+**Rule out the app before blaming it, and vice versa.** "Bob's text lands mid-word" could
+have been a real collaboration bug. Probes showed concurrent typing is correct (now a
+permanent test) and the problem was cursor placement in the script; a suspected
+cursor-only race in the editor remains open.
+
 ## 2026-11-21: Presence (T33)
 
 **Order matters between two independent channels.** Content (sync) and cursors
