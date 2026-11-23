@@ -54,6 +54,11 @@ export class SyncEndpoint {
   private readonly unloadTimers = new Map<string, unknown>();
   private readonly saveTimers = new Map<Room, unknown>();
   private readonly alive = new WeakMap<WebSocket, boolean>();
+  /**
+   * Connections that passed auth but are waiting for their note to load. Kept so that a
+   * revocation during the wait reaches them too (they are not in a room yet).
+   */
+  private readonly waiting = new Map<WebSocket, { noteId: string; tokenId: number }>();
   private readonly wss: WebSocketServer;
   private readonly limits: Limits;
   private readonly connectionsByIp = new Map<string, number>();
@@ -98,8 +103,19 @@ export class SyncEndpoint {
     this.wss.close();
   }
 
-  /** Closes every live connection that uses this token (after it was revoked). */
+  /** How many connections are waiting for their note to load (for tests). */
+  get pendingConnections(): number {
+    return this.waiting.size;
+  }
+
+  /**
+   * Closes every live connection that uses this token (after it was revoked): those in a
+   * room, and those still waiting for their note to load.
+   */
   disconnectToken(noteId: string, tokenId: number, closeCode: number): void {
+    for (const [socket, pending] of this.waiting) {
+      if (pending.noteId === noteId && pending.tokenId === tokenId) socket.close(closeCode);
+    }
     const room = this.rooms.get(noteId);
     if (!room) return;
     for (const connection of room.connections.values()) {
@@ -152,6 +168,7 @@ export class SyncEndpoint {
     let room: Room | null = null;
     const queue: Uint8Array[] = [];
     let closed = false;
+    this.waiting.set(ws, { noteId, tokenId: grant.tokenId });
 
     ws.on("message", (data: RawData, isBinary: boolean) => {
       this.alive.set(ws, true); // any traffic proves the connection is alive, not only pongs
@@ -166,12 +183,15 @@ export class SyncEndpoint {
     });
     ws.on("close", () => {
       closed = true;
+      this.waiting.delete(ws);
       if (room) this.onLeave(room, ws);
     });
 
     this.getRoom(noteId).then(
       (loaded) => {
-        if (closed) return;
+        this.waiting.delete(ws);
+        // Closed while waiting, including by a revocation (disconnectToken).
+        if (closed || ws.readyState !== ws.OPEN) return;
         room = loaded;
         room.join(
           ws,
@@ -186,6 +206,7 @@ export class SyncEndpoint {
         for (const message of queue.splice(0)) this.deliver(room, ws, message);
       },
       (err: unknown) => {
+        this.waiting.delete(ws);
         console.error(`sync: failed to load a note: ${String(err)}`);
         ws.close(1011, "could not load note");
       },

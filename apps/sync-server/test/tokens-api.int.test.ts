@@ -204,4 +204,49 @@ describe("token REST API", () => {
     expect(await role(createToken())).toBe(401);
     expect(await role(null)).toBe(401);
   });
+
+  it("revoking also stops a user whose note is still loading when the link is revoked", async () => {
+    // Hold every room load until the test lets it finish.
+    await server.close();
+    let releaseLoad: (() => void) | undefined;
+    server = await startServer({
+      port: 0,
+      sync: {
+        loadNote: () =>
+          new Promise((resolve) => {
+            releaseLoad = () => resolve(null);
+          }),
+      },
+    });
+    base = `http://127.0.0.1:${String(server.port)}`;
+    const noteId = createNoteId();
+    const owner = createToken();
+    // The owner's first connection claims the note (its room load is held, which is fine).
+    const ownerSocket = new WebSocket(syncUrl(noteId, owner));
+    await vi.waitFor(() => {
+      expect(releaseLoad).toBeDefined();
+    });
+    const edit = await createLink(noteId, owner, "edit");
+
+    const closed = new Promise<number>((resolve) => {
+      const ws = new WebSocket(syncUrl(noteId, edit.token));
+      ws.onclose = (event) => resolve(event.code);
+    });
+    await vi.waitFor(() => {
+      expect(server.sync.pendingConnections).toBe(2); // both waiting for the room
+    });
+
+    expect(
+      (await api(`/notes/${noteId}/tokens/${String(edit.tokenId)}`, owner, { method: "DELETE" }))
+        .status,
+    ).toBe(204);
+    releaseLoad?.();
+
+    expect(await closed).toBe(CLOSE_INVALID_TOKEN);
+    const roles = [...(server.sync.rooms.get(noteId)?.connections.values() ?? [])].map(
+      (c) => c.role,
+    );
+    expect(roles).toEqual(["owner"]); // the revoked user never joined
+    ownerSocket.close();
+  });
 });

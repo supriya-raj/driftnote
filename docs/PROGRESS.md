@@ -368,3 +368,7 @@ nosniff`, HSTS when HTTPS (TLS socket, or trusted proxy via `trustProxy` / env
 `TRUST_PROXY=1`). Tests `test/headers.int.test.ts`, `e2e/csp.spec.ts` (main flows record
 zero `securitypolicyviolation` events; an injected inline script is blocked); verified by
 sabotage. Whole e2e suite green in all three browsers under the policy.
+Fix after T37 (gap found while explaining the sync code): revoking a link also closes
+connections that passed auth but were still waiting for their note to load
+(`SyncEndpoint.waiting`, `pendingConnections`); they never join. Test in
+`test/tokens-api.int.test.ts`, verified by sabotage.
