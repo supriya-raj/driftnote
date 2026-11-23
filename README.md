@@ -3,8 +3,8 @@
 A local-first, real-time collaborative notes app: it works fully offline, syncs when a
 connection returns, and merges concurrent edits without conflicts.
 
-> **Status:** single-user offline-first editor works (M1). Next: real-time collaboration
-> (M2). See [`docs/PROGRESS.md`](docs/PROGRESS.md).
+> **Status:** offline-first editing (M1) and real-time collaboration (M2) work. Next:
+> offline conflict handling (M3). See [`docs/PROGRESS.md`](docs/PROGRESS.md).
 
 ## Run locally
 

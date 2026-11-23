@@ -1,11 +1,12 @@
 # Progress
 
 ## Current phase
-**Phase 2: Real-time collaboration (M2): in progress.** Phase 2 plan approved
-2026-11-21. Phase 1 (M1) and T19 complete.
+**Phase 2: Real-time collaboration (M2): complete** (2026-11-23). Phases 0-1 and T19
+complete.
 
 ## Next action
-T38: close M2 (`pnpm check` and `pnpm e2e:all --grep "@M1\|@M2"` green).
+README showcase (demo GIFs, owner request 2026-11-23), then state the **Phase 3** plan
+(offline conflict handling, S40 and T41-T47) in 5-10 lines and wait for the owner's OK.
 
 ## Task status
 
@@ -45,7 +46,7 @@ T38: close M2 (`pnpm check` and `pnpm e2e:all --grep "@M1\|@M2"` green).
 | 2 | T35 | View-only client | done |
 | 2 | T36 | Tabs | done |
 | 2 | T37 | Security headers | done |
-| 2 | T38 | Close M2 | todo |
+| 2 | T38 | Close M2 | done |
 | 3 | S40 | Spike: offline WebSockets in Playwright | todo |
 | 3 | T41 | M3 acceptance test | todo |
 | 3 | T42 | Network control helper | todo |
@@ -149,7 +150,10 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   HSTS only over TLS or with `TRUST_PROXY=1` and `X-Forwarded-Proto: https`.
 
 ## Open questions
-- To answer by spike: Playwright offline emulation of WebSockets (S40).
+- To answer by spike: Playwright offline emulation of WebSockets (S40). Also for S40: a
+  rare WebKit failure (1 in ~200 runs) of "a note page loads offline, even when opened
+  directly": `FetchEvent.respondWith received an error: TypeError: Load failed`, i.e. the
+  service worker hit the network during an offline navigation.
 - **Owner decision needed:** ADR 012 amendment (Proposed): every `schemaVersion` bump also
   bumps `PROTOCOL_VERSION`, so the server refuses outdated clients that would delete
   unknown blocks (S20 finding). Not urgent: no block types are added before then.
@@ -372,3 +376,6 @@ Fix after T37 (gap found while explaining the sync code): revoking a link also c
 connections that passed auth but were still waiting for their note to load
 (`SyncEndpoint.waiting`, `pendingConnections`); they never join. Test in
 `test/tokens-api.int.test.ts`, verified by sabotage.
+T38 done: `pnpm check` green; `pnpm e2e:all --grep "@M1|@M2"` 114/114. Tests with a
+second person (`bob` fixture) get double the total test budget (a loaded machine made
+Firefox exceed 30 s; per-step limits unchanged); `m2-collab` uses the fixture. M2 complete.
