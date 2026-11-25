@@ -5,6 +5,38 @@ Short, dated notes on what I learned, surprises, and mistakes. Newest first. Spi
 
 ---
 
+## 2026-11-25: Accessibility (M5a)
+
+**axe finds what it can measure, not what a person experiences.** It caught contrast,
+missing names, invalid ARIA and small targets. It could not see that most buttons had
+no focus ring (each button variant's own `box-shadow` replaced the global ring: same
+specificity, later in the file), that the editor trapped Tab, or that focus fell to
+`<body>` after a delete. Keyboard tests found those.
+
+**A weak test passes for the wrong reason.** The first focus-ring test asked "does it
+have an outline or a shadow?". Buttons always have a shadow, so it passed with the ring
+gone. The fix compares each control focused vs not focused, after its transition ends.
+
+**Measure after animations.** Mid-fade, axe measured text at a fraction of its colour
+and reported contrast failures that did not exist. Scans now wait for finite animations.
+
+**Browsers differ on keys, not only on rendering.** Safari's Tab skips buttons and links
+unless the user presses Option+Tab. In Firefox and Safari on macOS, End scrolls the page
+(the line end is Cmd+Right): a collaboration test had failed in those browsers since it
+was written, and only ever ran in Chromium.
+
+**A flaky test was a real bug.** Escape then a quick Enter on Share did nothing, about 1
+run in 16: a `<dialog>`'s close event is queued as a later task, browsers handle input
+first, and React saw "open (already open)" then "closed". Doing both in one synchronous
+step made the race certain, which made it testable.
+
+**Modal dialogs hide everything else from screen readers**, live regions included. An
+announcement made while a dialog is open must come from inside the dialog.
+
+**Exceptions need evidence.** The one axe rule we accept as not applying (the slash
+menu's scroll region) is listed with its reason and backed by a test proving the menu is
+reachable by keyboard; nothing else is filtered.
+
 ## 2026-11-23: Recording demos for the README
 
 **GIFs without ffmpeg.** Chromium's DevTools screencast streams a PNG per repaint with a

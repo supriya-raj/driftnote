@@ -89,6 +89,27 @@ test("@M5a the delete confirmation's explanation is read with it", async ({ page
   await expect(confirm).toHaveAccessibleDescription(/removed from this browser/);
 });
 
+// Found in the T64 accessibility-tree review: the hint was read as text after the editor,
+// and a viewer (whose editor does not indent) was told that Tab indents.
+test("@M5a the editor's keyboard hint is a description, only where it is true", async ({
+  page,
+  browser,
+}) => {
+  await createNote(page, { title: "Hinted", text: "Words" });
+  await expect(syncStatus(page)).toHaveAttribute("data-sync-state", "synced");
+  const hint = "Tab indents. Press Escape to leave the text.";
+  await expect(editorBody(page)).toHaveAccessibleDescription(hint);
+  await expect(page.getByRole("main").getByText(hint)).toBeHidden(); // not read twice
+
+  const link = await createShareLink(page, "view");
+  const viewerContext = await browser.newContext();
+  const viewer = await viewerContext.newPage();
+  await viewer.goto(link);
+  await viewer.getByText("View only").waitFor();
+  await expect(editorBody(viewer)).toHaveAccessibleDescription("");
+  await viewerContext.close();
+});
+
 test("@M5a profile colours have names, not codes", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /^You:/ }).click();

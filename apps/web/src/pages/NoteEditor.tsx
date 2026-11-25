@@ -107,9 +107,13 @@ export function NoteEditor({
       }}
     >
       <BlockNoteView editor={editor} editable={editable} theme={colorScheme} />
-      <span id={EDITOR_KEYS_HINT_ID} className="visually-hidden">
-        Tab indents. Press Escape to leave the text.
-      </span>
+      {/* Only read as the editor's description (`hidden` keeps it out of the reading
+          order), and only when it is true: a read-only editor does not indent. */}
+      {editable && (
+        <span id={EDITOR_KEYS_HINT_ID} hidden>
+          Tab indents. Press Escape to leave the text.
+        </span>
+      )}
     </div>
   );
 }

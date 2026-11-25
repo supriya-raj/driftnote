@@ -5,7 +5,7 @@
 ahead of Phase 3). Phases 0-2 and T19 complete.
 
 ## Next action
-T64: manual audit (scripted keyboard walkthrough, accessibility-tree review, VoiceOver checklist for the owner) and `docs/ACCESSIBILITY.md` completed.
+T65: close M5a (full suite in three browsers, `--repeat-each=3`, DESIGN.md review step includes the axe check, README media re-recorded).
 
 ## Task status
 
@@ -65,7 +65,7 @@ T64: manual audit (scripted keyboard walkthrough, accessibility-tree review, Voi
 | 5a | T61 | Accessibility scans + fixes | done |
 | 5a | T62 | Keyboard and focus | done |
 | 5a | T63 | Screen-reader semantics | done |
-| 5a | T64 | Manual audit | todo |
+| 5a | T64 | Manual audit | done |
 | 5a | T65 | Close M5a | todo |
 | 5b | T66 | Performance baseline | todo |
 | 5b | T67 | Performance budgets + optimisation | todo |
@@ -181,6 +181,9 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   chunks. The PWA precache is 4.9 MB (39 files), ~3 MB of it emoji names in 25 languages (loaded lazily by the
   emoji picker);
   optimise in M5b (T67).
+
+- **Owner, when convenient:** the 10-minute VoiceOver pass in `docs/ACCESSIBILITY.md`
+  ("VoiceOver checklist"). Claude reviewed the accessibility tree but cannot listen.
 
 ## In-progress notes
 None.
@@ -460,3 +463,9 @@ visually hidden `h2` with its title (heading navigation). Delete confirmation:
 `aria-describedby`. Profile colours named (`COLOR_NAMES`). "+N" in People here lists the
 hidden names. Tests `e2e/announcements.spec.ts` (8, three browsers); reduced motion already
 worked (test kept as a guard). Each behaviour verified by sabotage.
+T64 done: accessibility-tree review of the note page, share dialog, viewer, delete
+confirmation and profile (keyboard walk is scripted in the M5a tests). Fixed: the editor's
+key hint is now a `hidden` description (not read twice) and only on editable notes
+(viewers were told Tab indents); test in `announcements.spec.ts`, verified by sabotage.
+`docs/ACCESSIBILITY.md`: audit table, VoiceOver checklist for the owner, known limitation
+(headings and lists inside a note are BlockNote's structure). Learning-log entry.

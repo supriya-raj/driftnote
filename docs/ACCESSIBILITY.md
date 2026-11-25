@@ -101,7 +101,58 @@ element, and the same rule anywhere else, still fails.
 |---|---|---|---|
 | `scrollable-region-focusable` | `#bn-suggestion-menu` (slash menu) | The menu is driven from the editor with `aria-activedescendant`: arrow keys move through every item and scroll it into view, so it is keyboard-reachable without focusable content. axe cannot see that. | "the slash menu is keyboard-reachable to its last item" in `a11y-scans.spec.ts` |
 
+## Audit (2026-11-25, T64)
+
+What was done: every screen walked with the keyboard only (the tests in
+`keyboard.spec.ts` and `m5a-accessibility.spec.ts` script this walk in three browsers),
+and the accessibility tree (what a screen reader reads) of the note page, share dialog,
+viewer, delete confirmation and profile dialog read through line by line.
+
+| Finding | Outcome |
+|---|---|
+| Most buttons showed no focus ring (variant shadows replaced it) | Fixed (T62) |
+| Tab could not leave the note text | Fixed: Escape leaves it, the editor's description says so (T62) |
+| Focus fell to `<body>` after delete, after going back on a phone, after a revoke | Fixed (T62) |
+| The update banner covered the profile button on phones | Fixed (T61) |
+| Escape then a quick Enter did not reopen a dialog | Fixed (T62) |
+| The editor's key hint was read again as text, and told viewers that Tab indents | Fixed: a hidden description, only on editable notes (T64) |
+| Headings and bullet lists inside a note are exposed as BlockNote renders them | Known limitation (below) |
+| Saved-link fields are named "Link 3 (can edit)" (a server number) | Kept: unique and says what the link can do; revisit if it confuses |
+
+Not done by Claude: listening with a real screen reader. That is the owner's checklist
+below.
+
+### VoiceOver checklist (macOS, about 10 minutes)
+
+Turn VoiceOver on and off with **Cmd+F5**. VO = Control+Option. In Safari, use
+Option+Tab between controls (or turn on Settings → Advanced → "Press Tab to highlight
+each item").
+
+1. Open the app. Press VO+U, choose *Landmarks*: expect the sidebar, "Note navigation" and
+   main. Choose *Headings*: "Driftnote", "All notes".
+2. Tab once: "Skip to main content, link". Press Enter: VoiceOver moves to the main area.
+3. Go to "New note" and press Enter: you hear "Title, edit text". Type a title, press
+   Enter: "Note text, edit text … Tab indents. Press Escape to leave the text."
+4. Type a line, type `/`: the block menu opens and VoiceOver reads the highlighted item;
+   arrow down reads the next. Escape closes it; Escape again lands on the title.
+5. Open Share: "Share this note, dialog". Create a view link: you hear "View link created
+   and selected…". Copy: "Link copied." Escape: back on "Share, button".
+6. Turn Wi-Fi off: within a few seconds, "You're offline. Changes are saved…". Turn it
+   back on: "Back online. Your changes are synced."
+7. Delete the note: "Delete this note?, alert dialog … It will be removed from this
+   browser…", focus on Cancel. Confirm: "“Title” deleted." and focus on "New note".
+8. Open "You: …": the colours read as "Blue, radio button", and so on.
+
+Write anything that sounds wrong or confusing in `docs/PROGRESS.md` (open questions).
+
 ## Known limitations
+
+- **Inside a note, structure is BlockNote's.** A note's own headings start at level 1
+  (under the note's level-2 heading), and bullet and numbered lists are read as
+  paragraphs with "•" rather than as lists with a count. Changing that means changing
+  how BlockNote renders blocks; patching its DOM from outside would fight the editor
+  (ProseMirror owns that DOM). Candidate for an upstream issue, or for the Ariakit UI
+  variant that ADR 003 suggested evaluating.
 
 - **Cursor labels use the other person's colour with white text.** The app only offers
   colours with at least 4.5:1 against white (older palette colours are replaced on load),
