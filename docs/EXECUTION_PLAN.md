@@ -148,17 +148,43 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T55 | Restore | `pre-restore` snapshot, then replace live blocks; undo works | e2e: restore syncs to collaborator; undo returns to pre-restore content; restore during concurrent typing behaves as documented | `pnpm e2e --grep @M4` green |
 | T56 | Close M4 | `@M4-done` switched to a normal test | none | `pnpm check` green; `pnpm e2e:all --grep @M4` green |
 
-## Phase 5: Accessibility and performance (M5)
+## Phase 5a: Accessibility (M5a)
 
-**Done when:** axe reports no violations, the keyboard-only flow passes, and performance on a 10k-word note is measured, improved and recorded.
+Split from the original Phase 5 and **done before Phase 3**, at the owner's request
+(2026-11-25). It covers every screen that exists now; screens added later (M3 notices, the
+M4 history panel) meet the same bar through the rule below, not a second pass.
+
+**Standard:** WCAG 2.2 level AA. Automated scans use axe with the tags `wcag2a`,
+`wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`. A violation inside a third-party component
+(BlockNote, Mantine) is fixed by us where we can (styles, labels); otherwise it is
+recorded in `docs/ACCESSIBILITY.md` with its reason, never silently excluded.
+
+**Rule from then on:** every task that adds or changes UI also runs the axe check on its
+screens (`expectAccessible(page)`, light and dark) and keeps the keyboard-only flow working.
+
+**Done when:** axe reports zero violations on every screen in light and dark, and the core
+flow (create, title, write, share, open from the list, rename, delete) works with the
+keyboard alone, with focus always visible and never lost.
 
 | ID | Goal | Deliverable | Tests first | Verify |
 |---|---|---|---|---|
-| T60 | Accessibility scans | `@axe-core/playwright` scans of note list, editor, share dialog, history panel; fixes | e2e `@M5`: zero violations on each screen | `pnpm e2e --grep @M5` green |
-| T61 | Keyboard-only flow | Focus order, labels and shortcuts so the core flow needs no mouse; fixes | e2e: create, rename, share and restore using only the keyboard | `pnpm e2e --grep @M5` green |
-| T62 | Performance baseline | Generator for a 10k+ word note; measurements of load time, typing latency and sync time; `docs/PERFORMANCE.md` with baseline | measurement script runs | `pnpm perf` prints results; baseline recorded |
-| T63 | Performance budgets + optimisation | Budgets written as failing tests from target numbers, then optimisations; results recorded; size limits re-tuned (ADR 011) | perf tests with budgets | `pnpm perf` within budget; `docs/PERFORMANCE.md` updated |
-| T64 | Manual audit | Manual keyboard and screen-reader pass; findings and fixes logged | n/a | Learning-log entry; `pnpm check` green |
+| T60 | M5a acceptance test | `e2e/m5a-accessibility.spec.ts`, expected-to-fail | e2e `@M5a-done`: the core flow done with the keyboard only, with an axe scan of each screen on the way | Reports expected failure |
+| T61 | Accessibility scans + fixes | `@axe-core/playwright`; `e2e/support/a11y.ts` (`expectAccessible`); fixes (contrast, names, landmarks, target size, …) | e2e `@M5a` `a11y-scans`: zero violations on each screen and state (empty, list, note, slash menu, share dialog with links, delete confirm, profile, offline, view only, sync stopped, read-only, link invalid, not found, update prompt), light and dark, desktop and phone | `pnpm e2e --grep @M5a` green (except `@M5a-done`) |
+| T62 | Keyboard and focus | Skip link; focus moves sensibly on navigation (new note → title, Enter in title → text, delete → list); dialogs and popovers trap/return focus and close on Escape; revoke confirm keeps focus | e2e `@M5a` `keyboard`: one test per behaviour | `pnpm e2e --grep @M5a` green (except `@M5a-done`) |
+| T63 | Screen-reader semantics | Page structure (landmarks, one heading per pane), announcements for things that change without focus (sync offline/online, link copied, link created), meaningful colour names, editor label | e2e `@M5a` `announcements`: live regions and accessible names checked through the accessibility tree | `pnpm e2e --grep @M5a` green |
+| T64 | Manual audit | Scripted keyboard walkthrough and accessibility-tree review by Claude; `docs/ACCESSIBILITY.md` (standard, what is tested, known issues, a VoiceOver checklist for the owner) | n/a | Learning-log entry; `pnpm check` green |
+| T65 | Close M5a | `@M5a-done` switched to a normal test (or earlier, when it passes); `docs/DESIGN.md` review step includes the axe check | none | `pnpm check` green; `pnpm e2e:all --grep @M5a` green; `--repeat-each=3` green |
+
+## Phase 5b: Performance (M5b)
+
+Stays after Phase 4. Task IDs were T62/T63 before the split.
+
+**Done when:** performance on a 10k-word note is measured, improved and recorded.
+
+| ID | Goal | Deliverable | Tests first | Verify |
+|---|---|---|---|---|
+| T66 | Performance baseline | Generator for a 10k+ word note; measurements of load time, typing latency and sync time; `docs/PERFORMANCE.md` with baseline | measurement script runs | `pnpm perf` prints results; baseline recorded |
+| T67 | Performance budgets + optimisation | Budgets written as failing tests from target numbers, then optimisations; results recorded; size limits re-tuned (ADR 011) | perf tests with budgets | `pnpm perf` within budget; `docs/PERFORMANCE.md` updated |
 
 ## Phase 6: Continuous integration (final)
 

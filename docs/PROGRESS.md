@@ -1,12 +1,11 @@
 # Progress
 
 ## Current phase
-**Phase 2: Real-time collaboration (M2): complete** (2026-11-23). Phases 0-1 and T19
-complete.
+**Phase 5a: Accessibility (M5a): in progress** (started 2026-11-25, approved by the owner
+ahead of Phase 3). Phases 0-2 and T19 complete.
 
 ## Next action
-State the **Phase 3** plan (offline conflict handling, S40 and T41-T47) in 5-10 lines and
-wait for the owner's OK.
+T60: write the M5a acceptance test (`@M5a-done`, expected to fail).
 
 ## Task status
 
@@ -62,11 +61,14 @@ wait for the owner's OK.
 | 4 | T54 | History panel | todo |
 | 4 | T55 | Restore | todo |
 | 4 | T56 | Close M4 | todo |
-| 5 | T60 | Accessibility scans | todo |
-| 5 | T61 | Keyboard-only flow | todo |
-| 5 | T62 | Performance baseline | todo |
-| 5 | T63 | Performance budgets + optimisation | todo |
-| 5 | T64 | Manual audit | todo |
+| 5a | T60 | M5a acceptance test | todo |
+| 5a | T61 | Accessibility scans + fixes | todo |
+| 5a | T62 | Keyboard and focus | todo |
+| 5a | T63 | Screen-reader semantics | todo |
+| 5a | T64 | Manual audit | todo |
+| 5a | T65 | Close M5a | todo |
+| 5b | T66 | Performance baseline | todo |
+| 5b | T67 | Performance budgets + optimisation | todo |
 | 6 | T70 | CI checks | todo |
 | 6 | T71 | Nightly cross-browser | todo |
 | 6 | T72 | Stability gate in CI | todo |
@@ -149,11 +151,17 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   injects a <style> tag and cursors/avatars use style attributes. Scripts stay `'self'`.
   HSTS only over TLS or with `TRUST_PROXY=1` and `X-Forwarded-Proto: https`.
 
+- 2026-11-25: Owner: do accessibility now, before Phase 3; performance stays after M4.
+  Phase 5 split into 5a Accessibility (T60-T65) and 5b Performance (T66-T67, formerly
+  T62-T63). Standard: WCAG 2.2 AA via axe tags; third-party violations we cannot fix are
+  recorded in `docs/ACCESSIBILITY.md`, never silently excluded. From M5a on, every UI
+  task runs the axe check and keeps the keyboard flow working.
+
 ## Open questions
 - Suspected editor race (not confirmed): a cursor-only key press (End) by one person was
   repeatedly lost in the recorded demo when another person moved their cursor at the
   same instant; not reproduced in isolation (End worked with a remote cursor present;
-  concurrent typing is correct, see `m2-collab`). Revisit in M5 polish.
+  concurrent typing is correct, see `m2-collab`). Revisit in M5a (keyboard work).
 - To answer by spike: Playwright offline emulation of WebSockets (S40). Also for S40: a
   rare WebKit failure (1 in ~200 runs) of "a note page loads offline, even when opened
   directly": `FetchEvent.respondWith received an error: TypeError: Load failed`, i.e. the
@@ -167,7 +175,7 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 - Bundle size: main JS chunk is 1.4 MB (440 kB gzipped), mostly BlockNote, plus ~25 locale
   chunks. The PWA precache is 4.9 MB (39 files), ~3 MB of it emoji names in 25 languages (loaded lazily by the
   emoji picker);
-  optimise in M5 (T63).
+  optimise in M5b (T67).
 
 ## In-progress notes
 None.

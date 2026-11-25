@@ -148,9 +148,10 @@ review), `pnpm demo` (re-records the GIFs and images in this README).
 | M0 | Project setup, checks | done |
 | M1 | Offline-first editor | done |
 | M2 | Real-time collaboration and sharing | done |
+| M5a | Accessibility: WCAG 2.2 AA scans, keyboard-only use, screen-reader semantics | in progress |
 | M3 | Offline conflict handling: concurrent offline edits, "delete for everyone" | next |
 | M4 | Version history with restore | planned |
-| M5 | Accessibility and performance | planned |
+| M5b | Performance on large notes | planned |
 | CI | Automated checks on every push | planned |
 
 ## Repository layout
