@@ -81,6 +81,10 @@ beautiful**, in every task, not as a final polish pass.
    `apps/web/e2e/visual/screens.spec.ts` when a task adds UI.
 2. Look at the images: alignment, hierarchy, spacing, contrast, both themes, phone
    layout, long titles.
-3. e2e tests select by role and label, not by class, so restyling never breaks them.
-4. After visible changes, re-record the README media with `pnpm demo` (Chromium) and
+3. **Accessibility:** add the new screen or state to `apps/web/e2e/a11y-scans.spec.ts`
+   (axe, WCAG 2.2 AA, light and dark, desktop and phone) and make sure it works with the
+   keyboard alone (focus visible, never lost; see "Focus and keyboard" above and
+   `docs/ACCESSIBILITY.md`).
+4. e2e tests select by role and label, not by class, so restyling never breaks them.
+5. After visible changes, re-record the README media with `pnpm demo` (Chromium) and
    review the preview frames it writes to `apps/web/screenshots/demo/`.

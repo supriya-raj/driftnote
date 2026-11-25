@@ -1,11 +1,12 @@
 # Progress
 
 ## Current phase
-**Phase 5a: Accessibility (M5a): in progress** (started 2026-11-25, approved by the owner
-ahead of Phase 3). Phases 0-2 and T19 complete.
+**Phase 5a: Accessibility (M5a): complete** (2026-11-25, done ahead of Phase 3 at the
+owner's request). Phases 0-2 and T19 complete. Phase 3 (M3) is next.
 
 ## Next action
-T65: close M5a (full suite in three browsers, `--repeat-each=3`, DESIGN.md review step includes the axe check, README media re-recorded).
+State the **Phase 3** plan (offline conflict handling, S40 and T41-T47) in 5-10 lines and
+wait for the owner's OK.
 
 ## Task status
 
@@ -66,7 +67,7 @@ T65: close M5a (full suite in three browsers, `--repeat-each=3`, DESIGN.md revie
 | 5a | T62 | Keyboard and focus | done |
 | 5a | T63 | Screen-reader semantics | done |
 | 5a | T64 | Manual audit | done |
-| 5a | T65 | Close M5a | todo |
+| 5a | T65 | Close M5a | done |
 | 5b | T66 | Performance baseline | todo |
 | 5b | T67 | Performance budgets + optimisation | todo |
 | 6 | T70 | CI checks | todo |
@@ -184,6 +185,9 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
 
 - **Owner, when convenient:** the 10-minute VoiceOver pass in `docs/ACCESSIBILITY.md`
   ("VoiceOver checklist"). Claude reviewed the accessibility tree but cannot listen.
+
+- README GIFs (`docs/media/*.gif`) predate M5a's colour and focus changes; the owner chose
+  to keep them for now. Re-record with `pnpm demo` when convenient.
 
 ## In-progress notes
 None.
@@ -469,3 +473,8 @@ key hint is now a `hidden` description (not read twice) and only on editable not
 (viewers were told Tab indents); test in `announcements.spec.ts`, verified by sabotage.
 `docs/ACCESSIBILITY.md`: audit table, VoiceOver checklist for the owner, known limitation
 (headings and lists inside a note are BlockNote's structure). Learning-log entry.
+T65 done: M5a closed. `pnpm check` green (88 Vitest, 80 e2e); `@M5a` with
+`--repeat-each=3` in Chromium, Firefox and WebKit: 360/360; full `pnpm e2e:all` 237/237
+after T63. DESIGN.md review step now includes the axe scan and keyboard check; M4's T54/T55
+carry the M5a rule; README roadmap marks M5a done and links `docs/ACCESSIBILITY.md`. README
+GIFs not re-recorded (owner's choice).

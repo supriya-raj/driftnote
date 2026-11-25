@@ -144,8 +144,8 @@ Before each phase starts: state the phase plan in 5-10 lines and wait for the ow
 | T51 | Retention policy | Pure function: given snapshots and "now", return those to prune | **unit** `retention.test` (property-based): named never pruned; all kept for 7 days; at most one per day to 90 days; nothing older kept except named | `pnpm test` green |
 | T52 | Snapshot scheduler | Snapshot at most every 10 min while changed, on room empty, none if unchanged; retention job (intervals configurable) | integration `snapshots.int` (fake timers): each rule | `pnpm test:int` green |
 | T53 | History API | `GET /api/notes/:id/snapshots`, `GET .../:sid`, `POST .../snapshots` (`named` / `pre-restore`); owner and edit only | integration `history-api.int`: list/fetch/create; view role gets 403; fetched snapshot loads with the content from that moment | `pnpm test:int` green |
-| T54 | History panel | Panel listing versions; read-only preview; "Save version" with a name; hidden for viewers | e2e: list shows auto and named versions; preview does not change the live note; viewer sees no history | `pnpm e2e --grep @M4` green (except `@M4-done`) |
-| T55 | Restore | `pre-restore` snapshot, then replace live blocks; undo works | e2e: restore syncs to collaborator; undo returns to pre-restore content; restore during concurrent typing behaves as documented | `pnpm e2e --grep @M4` green |
+| T54 | History panel | Panel listing versions; read-only preview; "Save version" with a name; hidden for viewers | e2e: list shows auto and named versions; preview does not change the live note; viewer sees no history; axe scan of the panel (M5a rule) | `pnpm e2e --grep @M4` green (except `@M4-done`) |
+| T55 | Restore | `pre-restore` snapshot, then replace live blocks; undo works | e2e: restore syncs to collaborator; undo returns to pre-restore content; restore during concurrent typing behaves as documented; restore with the keyboard alone (M5a rule) | `pnpm e2e --grep @M4` green |
 | T56 | Close M4 | `@M4-done` switched to a normal test | none | `pnpm check` green; `pnpm e2e:all --grep @M4` green |
 
 ## Phase 5a: Accessibility (M5a)

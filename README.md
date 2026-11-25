@@ -148,7 +148,7 @@ review), `pnpm demo` (re-records the GIFs and images in this README).
 | M0 | Project setup, checks | done |
 | M1 | Offline-first editor | done |
 | M2 | Real-time collaboration and sharing | done |
-| M5a | Accessibility: WCAG 2.2 AA scans, keyboard-only use, screen-reader semantics | in progress |
+| M5a | Accessibility: WCAG 2.2 AA scans, keyboard-only use, screen-reader semantics ([details](docs/ACCESSIBILITY.md)) | done |
 | M3 | Offline conflict handling: concurrent offline edits, "delete for everyone" | next |
 | M4 | Version history with restore | planned |
 | M5b | Performance on large notes | planned |
@@ -169,5 +169,6 @@ review), `pnpm demo` (re-records the GIFs and images in this README).
 - [Architecture](docs/ARCHITECTURE.md): the system design, explained
 - [Decision records](docs/adr/): every significant choice and why
 - [Design system](docs/DESIGN.md): how the UI is built and reviewed
+- [Accessibility](docs/ACCESSIBILITY.md): the standard (WCAG 2.2 AA), how it is tested, keyboard use, known limits
 - [Execution plan](docs/EXECUTION_PLAN.md) and [progress](docs/PROGRESS.md)
 - [Learning log](docs/LEARNING_LOG.md): what went wrong, what I learned
