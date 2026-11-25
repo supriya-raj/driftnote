@@ -24,6 +24,18 @@ export const PRESENCE_COLORS = [
   "#5b5bd6",
 ] as const;
 
+/** What each colour is called, for screen readers (and anyone who cannot tell them apart). */
+export const COLOR_NAMES: Record<(typeof PRESENCE_COLORS)[number], string> = {
+  "#3e63dd": "Blue",
+  "#0f6e7a": "Teal",
+  "#1f7a52": "Green",
+  "#c2298a": "Pink",
+  "#8e4ec6": "Purple",
+  "#ca3214": "Red",
+  "#ad5700": "Amber",
+  "#5b5bd6": "Indigo",
+};
+
 /** Earlier palette colours that failed that contrast, and what replaced them. */
 const RETIRED_COLORS: Record<string, string> = {
   "#30a46c": "#1f7a52",

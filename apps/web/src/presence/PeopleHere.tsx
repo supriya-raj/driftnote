@@ -13,6 +13,10 @@ export function PeopleHere({ sync }: { sync: NoteSync }) {
   const people = usePeople(sync);
   if (people.length === 0) return null;
   const shown = people.slice(0, 4);
+  const hidden = people
+    .slice(4)
+    .map((p) => p.name)
+    .join(", ");
   return (
     <ul className="people-here" aria-label="People here">
       {shown.map((p) => (
@@ -22,14 +26,9 @@ export function PeopleHere({ sync }: { sync: NoteSync }) {
         </li>
       ))}
       {people.length > shown.length && (
-        <li
-          className="people-more"
-          title={people
-            .slice(4)
-            .map((p) => p.name)
-            .join(", ")}
-        >
-          +{people.length - shown.length}
+        <li className="people-more" title={hidden}>
+          <span aria-hidden="true">+{people.length - shown.length}</span>
+          <span className="visually-hidden">and {hidden}</span>
         </li>
       )}
     </ul>

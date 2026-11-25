@@ -248,7 +248,7 @@ test("@M5a revoking a link keeps focus in the share dialog", async ({ page }) =>
   await page.keyboard.press("Enter");
   await tabTo(page, dialog.getByRole("button", { name: "Confirm revoke" }));
   await page.keyboard.press("Enter");
-  await expect(dialog.getByText("Revoked")).toBeVisible();
+  await expect(dialog.getByText("Revoked", { exact: true })).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "Links" })).toBeFocused();
 });
 

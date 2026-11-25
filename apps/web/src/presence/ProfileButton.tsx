@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { LiveRegion } from "../a11y/announce";
 import { useReopenable } from "../lib/useReopenable";
 import { Avatar } from "./Avatar";
-import { PRESENCE_COLORS, setIdentity, useIdentity } from "./identity";
+import { COLOR_NAMES, PRESENCE_COLORS, setIdentity, useIdentity } from "./identity";
 import "./presence.css";
 
 /** "You: <name>" in the sidebar; opens a small dialog to change name and colour. */
@@ -80,12 +81,13 @@ function ProfileDialog({ onClose }: { onClose: () => void }) {
                   value={c}
                   checked={c === color}
                   onChange={() => setColor(c)}
-                  aria-label={`Colour ${c}`}
+                  aria-label={COLOR_NAMES[c]}
                 />
               </label>
             ))}
           </div>
         </fieldset>
+        <LiveRegion scope="dialog" />
         <div className="profile-actions">
           <button type="button" className="btn btn-ghost" onClick={() => dialog.current?.close()}>
             Cancel

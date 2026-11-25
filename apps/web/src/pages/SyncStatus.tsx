@@ -1,4 +1,5 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { announce } from "../a11y/announce";
 import { Icon, type IconName } from "../components/Icon";
 import type { OpenNote } from "../notes/noteDoc";
 import type { NoteSync, SyncState } from "../sync/noteSync";
@@ -22,6 +23,7 @@ const LABELS: Record<SyncState, { text: string; icon: IconName | null; title: st
 export function SyncStatus({ note, sync }: { note: OpenNote; sync: NoteSync }) {
   const state = useSyncExternalStore(sync.subscribe, () => sync.syncState);
   const local = useSyncExternalStore(note.subscribe, () => note.localState);
+  useConnectionAnnouncements(state);
   const label = LABELS[state];
   const text = state === "offline" && local !== "saved" ? "Saving…" : label.text;
   return (
@@ -35,4 +37,26 @@ export function SyncStatus({ note, sync }: { note: OpenNote; sync: NoteSync }) {
       {text}
     </span>
   );
+}
+
+/**
+ * Tells screen reader users when the connection drops and when it is back, the two
+ * changes that matter. "Syncing… / Synced" flips with every edit, so it is not spoken.
+ */
+function useConnectionAnnouncements(state: SyncState): void {
+  const previous = useRef<SyncState | null>(null);
+  const wentOffline = useRef(false);
+  useEffect(() => {
+    const before = previous.current;
+    previous.current = state;
+    if (before === null) return; // the first state on opening a note is not a change
+    if (state === "offline" && before !== "offline") {
+      wentOffline.current = true;
+      announce("You’re offline. Changes are saved in this browser and will sync later.");
+    }
+    if (state === "synced" && wentOffline.current) {
+      wentOffline.current = false;
+      announce("Back online. Your changes are synced.");
+    }
+  }, [state]);
 }

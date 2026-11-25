@@ -5,7 +5,7 @@
 ahead of Phase 3). Phases 0-2 and T19 complete.
 
 ## Next action
-T63: screen-reader semantics (page structure, announcements for sync state and copied/created links, colour names).
+T64: manual audit (scripted keyboard walkthrough, accessibility-tree review, VoiceOver checklist for the owner) and `docs/ACCESSIBILITY.md` completed.
 
 ## Task status
 
@@ -64,7 +64,7 @@ T63: screen-reader semantics (page structure, announcements for sync state and c
 | 5a | T60 | M5a acceptance test | done |
 | 5a | T61 | Accessibility scans + fixes | done |
 | 5a | T62 | Keyboard and focus | done |
-| 5a | T63 | Screen-reader semantics | todo |
+| 5a | T63 | Screen-reader semantics | done |
 | 5a | T64 | Manual audit | todo |
 | 5a | T65 | Close M5a | todo |
 | 5b | T66 | Performance baseline | todo |
@@ -451,3 +451,12 @@ journey with five scans). `m2-collab`: line-end key per platform (`LINE_END_KEY`
 confirm-and-retry caret helper (see open questions). Every behaviour verified by sabotage.
 Screenshot 14 (skip link, desktop). DESIGN.md "Focus and keyboard"; ACCESSIBILITY.md
 "Keyboard".
+T63 done: `src/a11y/announce.tsx` (`announce(message)` + `<LiveRegion scope>`: a page region
+in the app shell and one inside each dialog, since a modal dialog hides the page from
+assistive technology; the newest region speaks; clear-then-set so a repeated message is
+spoken again). Announced: offline / back online (not every save), link created / copied /
+selected-for-copy / revoked, note deleted. The open note is an `article` labelled by a
+visually hidden `h2` with its title (heading navigation). Delete confirmation:
+`aria-describedby`. Profile colours named (`COLOR_NAMES`). "+N" in People here lists the
+hidden names. Tests `e2e/announcements.spec.ts` (8, three browsers); reduced motion already
+worked (test kept as a guard). Each behaviour verified by sabotage.

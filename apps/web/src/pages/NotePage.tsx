@@ -26,6 +26,8 @@ interface OpenState {
   access: NoteAccess;
 }
 
+const NOTE_HEADING_ID = "note-heading";
+
 /** Navigation state: set when the note was just created, so its title takes focus. */
 export interface NoteNavigation {
   focusTitle?: boolean;
@@ -180,8 +182,13 @@ function OpenNoteView({ open }: { open: OpenState }) {
       ref={articleRef}
       className="note-content"
       tabIndex={-1}
-      aria-label={title || "Untitled"}
+      aria-labelledby={NOTE_HEADING_ID}
     >
+      {/* The title is a text field; this heading lets screen readers find the note by
+          heading navigation, and names the article. */}
+      <h2 id={NOTE_HEADING_ID} className="visually-hidden">
+        {title || "Untitled"}
+      </h2>
       <SyncStoppedNotice sync={sync} />
       <SchemaGateNotice note={note} />
       <NoteTitle

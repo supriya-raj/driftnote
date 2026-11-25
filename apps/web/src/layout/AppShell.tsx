@@ -1,5 +1,6 @@
 import { useEffect, useRef, type MouseEvent } from "react";
 import { Outlet, useLocation, useMatch } from "react-router";
+import { LiveRegion } from "../a11y/announce";
 import { UpdatePrompt } from "../UpdatePrompt";
 import "./AppShell.css";
 import { NEW_NOTE_BUTTON_ID, Sidebar } from "./Sidebar";
@@ -24,6 +25,7 @@ export function AppShell() {
         <Outlet />
       </main>
       <UpdatePrompt />
+      <LiveRegion scope="page" />
     </div>
   );
 }

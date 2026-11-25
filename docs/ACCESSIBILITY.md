@@ -42,6 +42,41 @@ logical. The keyboard tests and the manual audit cover the rest.
 Tested in `apps/web/e2e/keyboard.spec.ts`, one test per behaviour, in Chromium, Firefox
 and WebKit.
 
+## Screen readers
+
+**Structure.** One `h1` (Driftnote); landmarks: the sidebar (`complementary`, with
+`navigation` "Note navigation"), `main`. The open note is an `article` named by a heading
+with its title (visually hidden: the visible title is a text field), so heading
+navigation finds it. Pop-ups are `dialog` (share, profile) or `alertdialog` (delete),
+named by their headings; the delete confirmation's explanation is its description.
+
+**Announcements** (polite live regions, `src/a11y/announce.tsx`), for changes that happen
+without focus moving:
+
+| When | Spoken |
+|---|---|
+| The connection drops | "You're offline. Changes are saved in this browser and will sync later." |
+| It is back and everything is synced | "Back online. Your changes are synced." |
+| A share link is created | "Edit/View link created and selected. Copy it to share the note." |
+| A link is copied (or the clipboard is blocked) | "Link copied." / "Link selected. Press Cmd+C to copy it." |
+| A link is revoked | "Link revoked. It no longer opens this note." |
+| A note is deleted | "“Title” deleted." |
+
+Not spoken on purpose: "Syncing… / Synced" (it flips with every edit). A modal dialog
+hides the rest of the page from screen readers, so each dialog has its own live region
+and announcements go to the one in front. Refusals that stop syncing, the storage warning
+and the read-only notice are `role="alert"` and are read at once.
+
+**Names.** Everything interactive has a name (axe checks this); also: profile colours are
+named ("Teal"), people behind "+N" are listed by name, the editor is "Note text".
+
+**Motion.** With "reduce motion" set in the operating system, animations and transitions
+are off (`base.css`).
+
+Tested in `apps/web/e2e/announcements.spec.ts` (through the accessibility tree: roles,
+names, descriptions and live-region text; what a screen reader actually says is checked
+by hand, see the manual audit).
+
 ## Repairs to third-party components
 
 BlockNote (the editor, 0.57) and Mantine (its menus) render their own HTML. Where it falls

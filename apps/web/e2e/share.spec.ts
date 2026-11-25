@@ -44,7 +44,7 @@ test("@M2 a revoked link stops working: live and on the next visit", async ({ pa
   const dialog = page.getByRole("dialog", { name: /Share/ });
   await dialog.getByRole("button", { name: "Revoke" }).click();
   await dialog.getByRole("button", { name: "Confirm revoke" }).click();
-  await expect(dialog.getByText("Revoked")).toBeVisible();
+  await expect(dialog.getByText("Revoked", { exact: true })).toBeVisible();
 
   await expect(bob.getByRole("alert").filter({ hasText: "link is no longer valid" })).toBeVisible();
   await expect(syncStatus(bob)).toHaveAttribute("data-sync-state", "stopped");

@@ -7,6 +7,7 @@ import {
   shareUrl,
   type LinkInfo,
 } from "../api/client";
+import { announce, LiveRegion } from "../a11y/announce";
 import { Icon } from "../components/Icon";
 import { formatEdited } from "../lib/relativeTime";
 import { saveShareLink, shareLinksOf, type NoteAccess, type ShareLink } from "../notes/access";
@@ -71,6 +72,9 @@ export function ShareDialog({
       await saveShareLink({ ...link, noteId });
       setCreated({ role, url: shareUrl(noteId, link.token) });
       setStatus({ kind: "idle" });
+      announce(
+        `${role === "edit" ? "Edit" : "View"} link created and selected. Copy it to share the note.`,
+      );
       refresh();
     } catch (err) {
       setStatus({ kind: "error", message: describe(err) });
@@ -82,6 +86,7 @@ export function ShareDialog({
     try {
       await revokeLink(noteId, access.token, tokenId);
       setStatus({ kind: "idle" });
+      announce("Link revoked. It no longer opens this note.");
       refresh();
       // The row's buttons are gone; keep focus in the list instead of losing it.
       linksHeading.current?.focus();
@@ -184,6 +189,8 @@ export function ShareDialog({
           </ul>
         </section>
       )}
+
+      <LiveRegion scope="dialog" />
 
       <p className="share-footnote">
         Shared notes are stored on the Driftnote server, and its operator can read them.
@@ -290,9 +297,11 @@ function LinkField({
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      announce("Link copied.");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       input.current?.select(); // clipboard blocked: leave it selected for Ctrl/Cmd+C
+      announce(`Link selected. Press ${COPY_SHORTCUT} to copy it.`);
     }
   }
 
@@ -312,6 +321,8 @@ function LinkField({
     </div>
   );
 }
+
+const COPY_SHORTCUT = /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd+C" : "Ctrl+C";
 
 class LoadError {
   constructor(readonly cause: unknown) {}

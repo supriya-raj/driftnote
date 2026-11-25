@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { announce } from "../a11y/announce";
 import { Icon } from "../components/Icon";
 import { deleteNoteLocally } from "../notes/deleteNote";
 import type { OpenNote } from "../notes/noteDoc";
@@ -42,8 +43,10 @@ export function DeleteNoteButton({ note }: { note: OpenNote }) {
 
   async function onConfirm(): Promise<void> {
     setDeleting(true);
+    const title = note.meta.get("title");
     await deleteNoteLocally(note);
     await navigate("/");
+    announce(`“${typeof title === "string" && title ? title : "Untitled"}” deleted.`);
   }
 
   return (
@@ -59,11 +62,16 @@ export function DeleteNoteButton({ note }: { note: OpenNote }) {
         <span className="btn-label">Delete note</span>
       </button>
       {confirming && (
-        <div role="alertdialog" aria-labelledby="delete-note-title" className="popover">
+        <div
+          role="alertdialog"
+          aria-labelledby="delete-note-title"
+          aria-describedby="delete-note-text"
+          className="popover"
+        >
           <p id="delete-note-title" className="popover-title">
             Delete this note?
           </p>
-          <p className="popover-text">
+          <p id="delete-note-text" className="popover-text">
             It will be removed from this browser. This can’t be undone.
           </p>
           <div className="popover-actions">
