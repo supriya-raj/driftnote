@@ -44,6 +44,12 @@ for (const scheme of ["light", "dark"] as const) {
         await page.getByRole("button", { name: "New note" }).waitFor();
         await shot(page, `${prefix}-01-home-empty`);
 
+        if (device === "desktop") {
+          await page.keyboard.press("Tab"); // first Tab: the skip link appears
+          await page.getByRole("link", { name: "Skip to main content" }).waitFor();
+          await shot(page, `${prefix}-14-skip-link`);
+        }
+
         const noteUrl = await seedNotes(page);
         await page.goto("/");
         await page.getByRole("list", { name: "Notes" }).waitFor();

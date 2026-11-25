@@ -50,6 +50,13 @@
   padding: var(--space-6) 0 30vh;
 }
 
+/* Focused when the note opens (NotePage): the next Tab shows where focus is; a ring
+   around the whole note would be noise. */
+.note-content:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 .note-notice {
   margin: 0 var(--editor-inset) var(--space-5);
 }

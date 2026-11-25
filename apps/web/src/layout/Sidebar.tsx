@@ -7,9 +7,13 @@ import { useNow } from "../lib/useNow";
 import { createNote } from "../notes/createNote";
 import { getAllAccess } from "../notes/access";
 import { listNotes, subscribeToNoteList, type NoteListEntry } from "../notes/noteList";
+import type { NoteNavigation } from "../pages/NotePage";
 import { ProfileButton } from "../presence/ProfileButton";
 import { StorageWarning } from "../storage/StorageWarning";
 import "./Sidebar.css";
+
+/** Where focus goes when the list page opens after a note disappears (AppShell). */
+export const NEW_NOTE_BUTTON_ID = "new-note-button";
 
 export function Sidebar({ activeNoteId }: { activeNoteId: string | null }) {
   const navigate = useNavigate();
@@ -21,7 +25,7 @@ export function Sidebar({ activeNoteId }: { activeNoteId: string | null }) {
     setCreating(true);
     try {
       const noteId = await createNote();
-      await navigate(`/n/${noteId}`);
+      await navigate(`/n/${noteId}`, { state: { focusTitle: true } satisfies NoteNavigation });
     } finally {
       setCreating(false);
     }
@@ -38,6 +42,7 @@ export function Sidebar({ activeNoteId }: { activeNoteId: string | null }) {
 
       <div className="sidebar-actions">
         <button
+          id={NEW_NOTE_BUTTON_ID}
           type="button"
           className="btn btn-primary btn-block"
           disabled={creating}

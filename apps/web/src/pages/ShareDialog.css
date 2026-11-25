@@ -205,3 +205,8 @@
   color: var(--text-faint);
   font-size: var(--text-xs);
 }
+
+/* Some browsers make a scrollable dialog itself a tab stop (WebKit): show where focus is. */
+.share-dialog:focus-visible {
+  box-shadow: var(--shadow-lg), var(--focus-ring);
+}

@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 import { expectAccessible } from "./support/a11y";
-import { expectFocusVisible, tabTo } from "./support/keyboard";
+import { expectFocusVisible, pressTab, tabTo } from "./support/keyboard";
 import { editorBody } from "./support/notes";
 import { syncStatus } from "./support/sync";
 
 // M5a "done when": the core flow works with the keyboard alone (focus always visible,
 // never lost), and axe finds no WCAG 2.2 AA violations on any screen on the way.
-// Written as expected-to-fail in T60.
-test.fail();
+// Written as expected-to-fail in T60; a normal test since T62, which made it pass.
 
 test("@M5a-done the core flow works with the keyboard alone and every screen passes axe", async ({
   page,
 }) => {
+  test.setTimeout(60_000); // one long journey with five axe scans (each 1-3 s in Firefox)
   const notesList = page.getByRole("list", { name: "Notes" });
 
   // Home: start a note.
@@ -60,6 +60,9 @@ test("@M5a-done the core flow works with the keyboard alone and every screen pas
   await page.keyboard.press("Enter");
   const title = page.getByRole("textbox", { name: "Title" });
   await expect(title).toHaveValue("Keyboard plan");
+  // An existing note takes focus itself (no on-screen keyboard on phones); Tab → title.
+  await expect(page.getByRole("article", { name: "Keyboard plan" })).toBeFocused();
+  await pressTab(page);
   await expect(title).toBeFocused();
   await page.keyboard.press("ControlOrMeta+A");
   await page.keyboard.type("Keyboard plan, renamed");
@@ -71,7 +74,7 @@ test("@M5a-done the core flow works with the keyboard alone and every screen pas
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Cancel" })).toBeFocused();
   await expectAccessible(page, "delete confirmation");
-  await page.keyboard.press("Tab");
+  await pressTab(page);
   await expect(page.getByRole("button", { name: "Yes, delete" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/$/);

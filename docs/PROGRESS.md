@@ -5,7 +5,7 @@
 ahead of Phase 3). Phases 0-2 and T19 complete.
 
 ## Next action
-T62: keyboard and focus (skip link, focus on navigation, dialogs and popovers return focus).
+T63: screen-reader semantics (page structure, announcements for sync state and copied/created links, colour names).
 
 ## Task status
 
@@ -63,7 +63,7 @@ T62: keyboard and focus (skip link, focus on navigation, dialogs and popovers re
 | 4 | T56 | Close M4 | todo |
 | 5a | T60 | M5a acceptance test | done |
 | 5a | T61 | Accessibility scans + fixes | done |
-| 5a | T62 | Keyboard and focus | todo |
+| 5a | T62 | Keyboard and focus | done |
 | 5a | T63 | Screen-reader semantics | todo |
 | 5a | T64 | Manual audit | todo |
 | 5a | T65 | Close M5a | todo |
@@ -158,10 +158,15 @@ Statuses: `todo`, `in-progress` (with notes below), `done` (verification passed)
   task runs the axe check and keeps the keyboard flow working.
 
 ## Open questions
-- Suspected editor race (not confirmed): a cursor-only key press (End) by one person was
-  repeatedly lost in the recorded demo when another person moved their cursor at the
-  same instant; not reproduced in isolation (End worked with a remote cursor present;
-  concurrent typing is correct, see `m2-collab`). Revisit in M5a (keyboard work).
+- Editor race (reproduced in T62, cause not proven): a caret-only key press (End /
+  Cmd+Right) is sometimes undone when a collaborator's change or cursor update lands in
+  the same instant (`m2-collab` "typing at the same moment": ~1 in 3 runs in Chromium
+  before its helper confirmed the caret). Hypothesis: native caret move → ProseMirror
+  reads it only on `selectionchange` → a remote transaction in between redraws the stale
+  selection. Possible fix to try upstream: flush the DOM observer before applying remote
+  transactions. Typing itself is unaffected. Recorded in `docs/ACCESSIBILITY.md`.
+  (Separate finding: in Firefox/Safari on macOS, End scrolls the page; the line end is
+  Cmd+Right. That alone made the test fail in those browsers since it was added.)
 - To answer by spike: Playwright offline emulation of WebSockets (S40). Also for S40: a
   rare WebKit failure (1 in ~200 runs) of "a note page loads offline, even when opened
   directly": `FetchEvent.respondWith received an error: TypeError: Load failed`, i.e. the
@@ -424,3 +429,25 @@ is a grid row, not a floating card (it covered the profile button: WCAG 2.4.11).
 `showUpdatePrompt()`; screenshot 13 (update prompt). `docs/ACCESSIBILITY.md` (standard,
 checks, repairs, exceptions, limitations). Each fix verified by sabotage. README GIFs not
 re-recorded yet (colours changed slightly): do it in T65 after all M5a UI changes.
+T62 done: `e2e/keyboard.spec.ts` (12 tests, keys only; `tabTo`/`pressTab` press Option+Tab in
+WebKit, where plain Tab skips buttons and links like Safari). Skip link (hidden on the
+phone's list page, where the list is the content); `<main tabIndex=-1>`; focus never lost:
+new note → title (navigation state `focusTitle`), opened note → `<article>` named by its
+title (not the title field: no phone keyboard just to read), back/delete → "New note"
+(`AppShell` reacts only to in-app navigations, so the first Tab still reaches the skip
+link), Enter in title → start of text (`EditorHandle.focusStart`), Escape in text → title
+(BlockNote's own Escape blurs to <body>; we finish the move); delete popover and revoke
+confirm focus Cancel and return focus; after a revoke, focus on the "Links" heading.
+Bugs found by the stronger tests: (1) `.btn-primary/-secondary/-danger` box-shadows
+replaced the focus ring (same specificity, later in the file): most buttons had none;
+`.btn:focus-visible` fixes it. The ring test now compares each control focused vs not
+(a button's own shadow is not a ring) after transitions finish. (2) Escape then a quick
+Enter on Share/profile did nothing: a dialog's `close` event arrives as a later task and
+input is handled first; `lib/useReopenable` mounts a fresh dialog per opening
+(deterministic regression test; a key-guarded close was untestable and removed).
+(3) WebKit made the scrollable dialog a tab stop: dialogs get `tabIndex=-1`.
+`@M5a-done` passes in all three browsers and is a normal test (60 s budget: one long
+journey with five scans). `m2-collab`: line-end key per platform (`LINE_END_KEY`) and a
+confirm-and-retry caret helper (see open questions). Every behaviour verified by sabotage.
+Screenshot 14 (skip link, desktop). DESIGN.md "Focus and keyboard"; ACCESSIBILITY.md
+"Keyboard".

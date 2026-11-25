@@ -174,3 +174,8 @@
   font-weight: 600;
   box-shadow: 0 0 0 2px var(--surface);
 }
+
+/* Some browsers make a scrollable dialog itself a tab stop (WebKit): show where focus is. */
+.profile-dialog:focus-visible {
+  box-shadow: var(--shadow-lg), var(--focus-ring);
+}

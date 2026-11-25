@@ -5,13 +5,34 @@ import { expect, type Locator, type Page } from "@playwright/test";
  * keyboard user would. Fails if it is not reached within `max` presses, listing what got
  * focus on the way, which shows where the tab order went wrong.
  */
+/**
+ * The key that moves the caret to the end of the line. On macOS that is Cmd+Right: there,
+ * Firefox and Safari use End to scroll to the bottom of the page (Chromium accepts both).
+ */
+export const LINE_END_KEY = process.platform === "darwin" ? "Meta+ArrowRight" : "End";
+
+/**
+ * The key that moves focus to the next control. Safari (WebKit) by default moves Tab only
+ * between form fields; its users press Option+Tab (or change a setting) to reach buttons
+ * and links too, so in WebKit the tests press that.
+ */
+export function tabKey(page: Page, options: { backwards?: boolean } = {}): string {
+  const webkit = page.context().browser()?.browserType().name() === "webkit";
+  return `${options.backwards ? "Shift+" : ""}${webkit ? "Alt+" : ""}Tab`;
+}
+
+/** Presses Tab (Option+Tab in WebKit, see `tabKey`). */
+export function pressTab(page: Page, options: { backwards?: boolean } = {}): Promise<void> {
+  return page.keyboard.press(tabKey(page, options));
+}
+
 export async function tabTo(
   page: Page,
   target: Locator,
   options: { max?: number; backwards?: boolean } = {},
 ): Promise<void> {
   const max = options.max ?? 40;
-  const key = options.backwards ? "Shift+Tab" : "Tab";
+  const key = tabKey(page, options);
   const visited: string[] = [];
   for (let i = 0; i < max; i++) {
     if (await isFocused(target)) return;
@@ -38,6 +59,8 @@ export async function expectFocusVisible(page: Page, where: string): Promise<voi
 }
 
 async function isFocused(target: Locator): Promise<boolean> {
+  // Not there (yet) means not focused: answer at once instead of waiting for it to appear.
+  if ((await target.count()) === 0) return false;
   return target.evaluate((el) => el === document.activeElement).catch(() => false);
 }
 

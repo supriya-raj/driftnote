@@ -36,6 +36,7 @@ export function ShareDialog({
   const [tokens, setTokens] = useState<Map<number, ShareLink>>(new Map());
   const [created, setCreated] = useState<{ role: "edit" | "view"; url: string } | null>(null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const linksHeading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     dialog.current?.showModal();
@@ -82,6 +83,8 @@ export function ShareDialog({
       await revokeLink(noteId, access.token, tokenId);
       setStatus({ kind: "idle" });
       refresh();
+      // The row's buttons are gone; keep focus in the list instead of losing it.
+      linksHeading.current?.focus();
     } catch (err) {
       setStatus({ kind: "error", message: describe(err) });
     }
@@ -92,6 +95,8 @@ export function ShareDialog({
     <dialog
       ref={dialog}
       className="share-dialog"
+      // Not a tab stop itself (WebKit makes a scrollable dialog one): its controls are.
+      tabIndex={-1}
       aria-labelledby="share-title"
       onClose={onClose}
       onClick={(e) => {
@@ -162,7 +167,9 @@ export function ShareDialog({
 
       {links && links.length > 0 && (
         <section className="share-links">
-          <h3>Links</h3>
+          <h3 ref={linksHeading} tabIndex={-1}>
+            Links
+          </h3>
           <ul aria-label="Links">
             {links.map((link) => (
               <LinkRow
@@ -199,6 +206,15 @@ function LinkRow({
   onRevoke: () => void;
 }) {
   const [confirming, setConfirming] = useState(false);
+  // Focus follows the step: "Cancel" (the safe choice) when asked to confirm, "Revoke"
+  // again when cancelled, so it is never left on a button that just disappeared.
+  const [focusTarget, setFocusTarget] = useState<"cancel" | "revoke" | null>(null);
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  const revokeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (focusTarget === "cancel") cancelButton.current?.focus();
+    if (focusTarget === "revoke") revokeButton.current?.focus();
+  }, [focusTarget]);
   const revoked = link.revokedAt !== null;
   return (
     <li className="share-link" data-revoked={revoked || undefined}>
@@ -212,7 +228,15 @@ function LinkRow({
         {!revoked &&
           (confirming ? (
             <span className="share-confirm">
-              <button type="button" className="btn btn-ghost" onClick={() => setConfirming(false)}>
+              <button
+                ref={cancelButton}
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => {
+                  setConfirming(false);
+                  setFocusTarget("revoke");
+                }}
+              >
                 Cancel
               </button>
               <button type="button" className="btn btn-danger" disabled={busy} onClick={onRevoke}>
@@ -221,9 +245,13 @@ function LinkRow({
             </span>
           ) : (
             <button
+              ref={revokeButton}
               type="button"
               className="btn btn-ghost-danger"
-              onClick={() => setConfirming(true)}
+              onClick={() => {
+                setConfirming(true);
+                setFocusTarget("cancel");
+              }}
             >
               Revoke
             </button>

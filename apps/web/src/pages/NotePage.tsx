@@ -1,18 +1,19 @@
 import { isNoteId } from "@driftnote/shared";
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useParams } from "react-router";
 import { Icon, type IconName } from "../components/Icon";
 import { ensureAccess, getAccess, type NoteAccess } from "../notes/access";
 import { setCurrentNote } from "../notes/currentNote";
 import { noteExistsLocally, OpenNote } from "../notes/noteDoc";
 import { keepListEntryInSync } from "../notes/noteList";
 import { acceptLinkFromUrl } from "../notes/openLink";
+import { useReopenable } from "../lib/useReopenable";
 import { PeopleHere } from "../presence/PeopleHere";
 import { NoteSync } from "../sync/noteSync";
 import { DeleteNoteButton } from "./DeleteNoteButton";
-import { NoteEditor } from "./NoteEditor";
+import { NoteEditor, type EditorHandle } from "./NoteEditor";
 import "./NotePage.css";
-import { NoteTitle } from "./NoteTitle";
+import { NoteTitle, useNoteTitle } from "./NoteTitle";
 import { SchemaGateNotice } from "./SchemaGateNotice";
 import { ShareDialog } from "./ShareDialog";
 import { SyncStatus } from "./SyncStatus";
@@ -23,6 +24,11 @@ interface OpenState {
   note: OpenNote;
   sync: NoteSync;
   access: NoteAccess;
+}
+
+/** Navigation state: set when the note was just created, so its title takes focus. */
+export interface NoteNavigation {
+  focusTitle?: boolean;
 }
 
 type PageState =
@@ -145,36 +151,70 @@ export function NotePage() {
         />
       )}
 
-      {state.kind === "open" && (
-        <article className="note-content" key={state.note.noteId}>
-          <SyncStoppedNotice sync={state.sync} />
-          <SchemaGateNotice note={state.note} />
-          <NoteTitle note={state.note} />
-          <NoteEditor note={state.note} sync={state.sync} />
-        </article>
-      )}
+      {state.kind === "open" && <OpenNoteView key={state.note.noteId} open={state} />}
     </div>
   );
 }
 
+/**
+ * The open note. Focus moves here when it opens, so it is never left on an element that
+ * just disappeared (on phones the list is hidden): a brand-new note focuses its title,
+ * any other note focuses the note itself, announced with its title. Not the title field:
+ * on a phone that would pop up the keyboard just for reading.
+ */
+function OpenNoteView({ open }: { open: OpenState }) {
+  const { note, sync } = open;
+  const navigation = useLocation().state as NoteNavigation | null;
+  const focusTitle = navigation?.focusTitle === true;
+  const title = useNoteTitle(note);
+  const articleRef = useRef<HTMLElement>(null);
+  const editorRef = useRef<EditorHandle>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!focusTitle) articleRef.current?.focus();
+  }, [focusTitle]);
+
+  return (
+    <article
+      ref={articleRef}
+      className="note-content"
+      tabIndex={-1}
+      aria-label={title || "Untitled"}
+    >
+      <SyncStoppedNotice sync={sync} />
+      <SchemaGateNotice note={note} />
+      <NoteTitle
+        ref={titleRef}
+        note={note}
+        autoFocus={focusTitle}
+        onEnter={() => editorRef.current?.focusStart()}
+      />
+      <NoteEditor
+        note={note}
+        sync={sync}
+        handleRef={editorRef}
+        onEscape={() => titleRef.current?.focus()}
+      />
+    </article>
+  );
+}
+
 function ShareButton({ open }: { open: OpenState }) {
-  const [sharing, setSharing] = useState(false);
+  const sharing = useReopenable();
   return (
     <>
-      <button
-        type="button"
-        className="btn btn-secondary toolbar-btn"
-        onClick={() => setSharing(true)}
-      >
+      <button type="button" className="btn btn-secondary toolbar-btn" onClick={sharing.open}>
         <Icon name="share" />
         <span className="btn-label">Share</span>
       </button>
-      {sharing && (
+      {sharing.isOpen && (
         <ShareDialog
+          key={sharing.key}
           noteId={open.note.noteId}
           access={open.access}
           sync={open.sync}
-          onClose={() => setSharing(false)}
+          onClose={sharing.close}
         />
       )}
     </>

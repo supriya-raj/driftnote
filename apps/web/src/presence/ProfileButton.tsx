@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useReopenable } from "../lib/useReopenable";
 import { Avatar } from "./Avatar";
 import { PRESENCE_COLORS, setIdentity, useIdentity } from "./identity";
 import "./presence.css";
@@ -6,10 +7,10 @@ import "./presence.css";
 /** "You: <name>" in the sidebar; opens a small dialog to change name and colour. */
 export function ProfileButton() {
   const identity = useIdentity();
-  const [editing, setEditing] = useState(false);
+  const editing = useReopenable();
   return (
     <>
-      <button type="button" className="profile-button" onClick={() => setEditing(true)}>
+      <button type="button" className="profile-button" onClick={editing.open}>
         <Avatar name={identity.name} color={identity.color} size={28} />
         <span className="profile-text">
           <span className="profile-caption" aria-hidden="true">
@@ -19,7 +20,7 @@ export function ProfileButton() {
           <span className="profile-name">{identity.name}</span>
         </span>
       </button>
-      {editing && <ProfileDialog onClose={() => setEditing(false)} />}
+      {editing.isOpen && <ProfileDialog key={editing.key} onClose={editing.close} />}
     </>
   );
 }
@@ -38,6 +39,8 @@ function ProfileDialog({ onClose }: { onClose: () => void }) {
     <dialog
       ref={dialog}
       className="profile-dialog"
+      // Not a tab stop itself (WebKit makes a scrollable dialog one): its controls are.
+      tabIndex={-1}
       aria-labelledby="profile-title"
       onClose={onClose}
     >

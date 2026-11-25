@@ -68,6 +68,13 @@ input {
     box-shadow 120ms ease;
 }
 
+/* Button variants set their own box-shadow, which would replace the global focus ring
+   (same specificity, later in the file). This rule is more specific, so the ring wins. */
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .btn:disabled {
   opacity: 0.55;
   cursor: default;

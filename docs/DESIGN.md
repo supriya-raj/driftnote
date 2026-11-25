@@ -53,6 +53,22 @@ beautiful**, in every task, not as a final polish pass.
 | Empty states | `EmptyState`, `.note-missing` | Soft icon tile, short heading, one sentence, optional action. |
 | Note list | `Sidebar.tsx` | Title + relative time; whole row clickable (stretched link); active row raised. |
 
+## Focus and keyboard
+- **Every control shows a focus ring** (`--focus-ring`) when reached by keyboard. A
+  component that sets its own `box-shadow` must keep the ring winning (see `.btn:focus-visible`
+  in `base.css`). Exceptions: the note title and text, which show focus with the caret.
+- **Focus is never lost.** When an action removes the focused element, focus moves to the
+  next sensible place: a new note → its title; opening a note → the note (`<article>`,
+  not the title field, so phones do not pop up the keyboard); back to the list or after a
+  delete → "New note"; a confirmation → its safe choice; cancelling it → the button that
+  opened it.
+- **Dialogs** are native `<dialog>` + `showModal()` (focus stays inside, Escape closes,
+  focus returns to the opener), opened through `useReopenable` (a fresh dialog per
+  opening). Containers that are focused by script use `tabIndex={-1}`, never a tab stop.
+- **Skip link** first in the page ("Skip to main content"), shown only when focused.
+- **The note text:** Tab indents (BlockNote), so Escape is the way out (to the title);
+  screen readers are told so by the editor's description.
+
 ## Layout
 - **App shell:** sidebar (brand, "New note", note list, storage notice) + content pane.
 - **Note page:** sticky translucent toolbar (back link on phones, save status, actions);

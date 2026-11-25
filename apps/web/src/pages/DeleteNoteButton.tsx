@@ -10,15 +10,24 @@ export function DeleteNoteButton({ note }: { note: OpenNote }) {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
   const cancelButton = useRef<HTMLButtonElement>(null);
 
+  /** Closes the confirmation; from the keyboard, focus goes back to "Delete note". */
+  function cancel(): void {
+    setConfirming(false);
+    trigger.current?.focus();
+  }
+
   // While the confirmation is open: focus "Cancel" (the safe choice), and close on Escape
-  // or a click elsewhere.
+  // or a click elsewhere (a click elsewhere puts focus where it clicked).
   useEffect(() => {
     if (!confirming) return;
     cancelButton.current?.focus();
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === "Escape") setConfirming(false);
+      if (e.key !== "Escape") return;
+      setConfirming(false);
+      trigger.current?.focus();
     };
     const onPointer = (e: PointerEvent): void => {
       if (!wrapper.current?.contains(e.target as Node)) setConfirming(false);
@@ -40,6 +49,7 @@ export function DeleteNoteButton({ note }: { note: OpenNote }) {
   return (
     <div className="delete-note" ref={wrapper}>
       <button
+        ref={trigger}
         type="button"
         className="btn btn-ghost-danger toolbar-btn"
         aria-expanded={confirming}
@@ -62,7 +72,7 @@ export function DeleteNoteButton({ note }: { note: OpenNote }) {
               type="button"
               className="btn btn-secondary"
               disabled={deleting}
-              onClick={() => setConfirming(false)}
+              onClick={cancel}
             >
               Cancel
             </button>
