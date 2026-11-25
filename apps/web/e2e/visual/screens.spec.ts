@@ -80,7 +80,7 @@ for (const scheme of ["light", "dark"] as const) {
         await bob.addInitScript(() => {
           localStorage.setItem(
             "driftnote.identity",
-            JSON.stringify({ name: "Bob Rivera", color: "#d6409f" }),
+            JSON.stringify({ name: "Bob Rivera", color: "#c2298a" }),
           );
         });
         await bob.goto(link);
@@ -108,6 +108,11 @@ for (const scheme of ["light", "dark"] as const) {
         await profile.waitFor();
         await shot(page, `${prefix}-11-profile`);
         await profile.getByRole("button", { name: "Cancel" }).click();
+
+        await page.evaluate(() => window.__driftnote?.showUpdatePrompt());
+        await page.getByRole("button", { name: "Reload" }).waitFor();
+        await shot(page, `${prefix}-13-update-prompt`);
+        await page.getByRole("button", { name: "Later" }).click();
         await page.goto(noteUrl);
 
         await page.getByRole("button", { name: "Delete note" }).click();

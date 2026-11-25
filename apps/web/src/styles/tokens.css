@@ -15,8 +15,9 @@
   --border-strong: #d6d0c6;
 
   --text: #1f1d1a;
-  --text-muted: #6b665e;
-  --text-faint: #9a948a;
+  /* Muted and faint text meet WCAG AA (4.5:1) on every surface, hover states included. */
+  --text-muted: #625d55;
+  --text-faint: #706a61;
 
   /* Accent: a deep sea teal ("drift"). */
   --accent: #0f6e7a;
@@ -28,6 +29,7 @@
   --danger: #b4232c;
   --danger-hover: #961c24;
   --danger-soft: #fbe9ea;
+  --on-danger: #ffffff;
 
   --warning-soft: #fdf3dc;
   --warning-border: #f0d9a0;
@@ -83,8 +85,8 @@
     --border-strong: #3a3733;
 
     --text: #ecebe8;
-    --text-muted: #a39e95;
-    --text-faint: #75706a;
+    --text-muted: #b0aba2;
+    --text-faint: #97928a;
 
     --accent: #4fb8c4;
     --accent-hover: #6fcad4;
@@ -95,6 +97,7 @@
     --danger: #f0717a;
     --danger-hover: #f58d94;
     --danger-soft: #3a1c1e;
+    --on-danger: #1f0c0d;
 
     --warning-soft: #2e2615;
     --warning-border: #4d3f1e;

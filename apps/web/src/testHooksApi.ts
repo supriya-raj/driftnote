@@ -20,4 +20,6 @@ export interface DriftnoteTestHooks {
   storedContent(): string;
   /** Sets the open note's `meta.schemaVersion`, as a newer app version would. */
   setSchemaVersion(version: number): void;
+  /** Shows the "new version available" prompt, as if a new version were waiting. */
+  showUpdatePrompt(): void;
 }

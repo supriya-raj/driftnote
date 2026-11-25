@@ -108,7 +108,7 @@ input {
 
 .btn-danger {
   background: var(--danger);
-  color: #fff;
+  color: var(--on-danger);
   box-shadow: var(--shadow-sm);
 }
 

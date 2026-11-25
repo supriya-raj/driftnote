@@ -1,6 +1,7 @@
 import * as Y from "yjs";
 import { getCurrentNote } from "./notes/currentNote";
 import { deleteNoteList } from "./notes/noteList";
+import { previewUpdatePrompt } from "./UpdatePrompt";
 import type { DriftnoteTestHooks } from "./testHooksApi";
 
 declare global {
@@ -28,6 +29,7 @@ export function installTestHooks(): void {
     storedContent() {
       return getCurrentNote().content.toJSON(); // the XML string
     },
+    showUpdatePrompt: previewUpdatePrompt,
   };
 }
 

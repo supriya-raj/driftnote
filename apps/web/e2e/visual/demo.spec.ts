@@ -130,7 +130,7 @@ test.describe("demo", () => {
     const aliceContext = await browser.newContext(options);
     const bobContext = await browser.newContext(options);
     const alice = await asPerson(aliceContext, "Alice Chen", "#0f6e7a");
-    const bob = await asPerson(bobContext, "Bob Rivera", "#d6409f");
+    const bob = await asPerson(bobContext, "Bob Rivera", "#c2298a");
     await alice.goto("/");
     await bob.goto("/");
     await quickNote(alice, "Reading list", "Piranesi, The Overstory");

@@ -29,6 +29,9 @@
 }
 
 .note-editor .bn-editor a[data-inline-content-type="link"] {
+  /* Vertical padding makes the click target at least 24px tall in every engine (WCAG
+     2.5.8) without moving text: padding on inline elements does not change line height. */
+  padding-block: 3px;
   color: var(--accent-text);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;

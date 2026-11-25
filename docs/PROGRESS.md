@@ -5,7 +5,7 @@
 ahead of Phase 3). Phases 0-2 and T19 complete.
 
 ## Next action
-T61: axe scans of every screen and state (light/dark, desktop/phone) and the fixes.
+T62: keyboard and focus (skip link, focus on navigation, dialogs and popovers return focus).
 
 ## Task status
 
@@ -62,7 +62,7 @@ T61: axe scans of every screen and state (light/dark, desktop/phone) and the fix
 | 4 | T55 | Restore | todo |
 | 4 | T56 | Close M4 | todo |
 | 5a | T60 | M5a acceptance test | done |
-| 5a | T61 | Accessibility scans + fixes | todo |
+| 5a | T61 | Accessibility scans + fixes | done |
 | 5a | T62 | Keyboard and focus | todo |
 | 5a | T63 | Screen-reader semantics | todo |
 | 5a | T64 | Manual audit | todo |
@@ -408,3 +408,19 @@ open first from the list (focus on its title) → rename → delete (focus on Ca
 afterwards), axe on each screen. UI contract it fixes: opening a note focuses its title;
 Enter in the title moves to the text. Fails first on a real violation: contrast of the
 "You" caption in the sidebar footer. Expected failure in all three browsers.
+T61 done: `e2e/a11y-scans.spec.ts` scans 20 screens/states × light/dark × desktop/phone
+(soft assertions, so one run lists every problem); green in Chromium, Firefox, WebKit.
+`expectAccessible` now waits for finite animations first (mid-fade text was measured at a
+fraction of its colour) and supports narrow, documented exceptions (one: axe's
+`scrollable-region-focusable` on BlockNote's slash menu, backed by a keyboard test).
+Fixes: `--text-faint`/`--text-muted` darkened (light) and lightened (dark) to ≥ 4.5:1 on
+every surface; `--on-danger` (dark text on the dark-mode danger fill); three presence
+colours deepened, old values migrated on load; avatar initials pick white/dark by contrast
+(`lib/contrast.ts`, any remote colour); editor `aria-label="Note text"` via
+`domAttributes`; `notes/editorAria.ts` removes BlockNote's invalid `aria-expanded` on the
+textbox and names the slash menu "Insert a block"; inline links get 3px block padding
+(24px targets; WebKit's box is 0.6px shorter than Chromium's); on phones the update prompt
+is a grid row, not a floating card (it covered the profile button: WCAG 2.4.11). Test hook
+`showUpdatePrompt()`; screenshot 13 (update prompt). `docs/ACCESSIBILITY.md` (standard,
+checks, repairs, exceptions, limitations). Each fix verified by sabotage. README GIFs not
+re-recorded yet (colours changed slightly): do it in T65 after all M5a UI changes.

@@ -12,8 +12,9 @@ beautiful**, in every task, not as a final polish pass.
   heading 3 (19px) > body (16px in the editor, 14px in the interface).
 - **Light and dark** from the operating system setting, with equal care for both.
 - **Works at phone width:** below 768px, one pane at a time.
-- **Accessible by default:** visible focus rings, text contrast that meets WCAG AA,
-  real buttons and links, `prefers-reduced-motion` respected.
+- **Accessible by default:** WCAG 2.2 AA (`docs/ACCESSIBILITY.md`): visible focus rings,
+  text contrast of at least 4.5:1 on every surface (hover states included), click targets
+  of at least 24px, real buttons and links, `prefers-reduced-motion` respected.
 
 ## Implementation
 - **Plain CSS with design tokens:** no CSS framework or component library for the app's
@@ -33,9 +34,9 @@ beautiful**, in every task, not as a final polish pass.
 |---|---|
 | Surfaces | `--bg`, `--surface`, `--surface-sunken` (sidebar), `--surface-hover`, `--surface-active` |
 | Lines | `--border`, `--border-strong` |
-| Text | `--text`, `--text-muted`, `--text-faint` |
+| Text | `--text`, `--text-muted`, `--text-faint` (all at least 4.5:1 on every surface; faint is for secondary details, not for anything a user must read to act) |
 | Accent | `--accent`, `--accent-hover`, `--accent-soft`, `--accent-text`, `--on-accent` |
-| Status | `--danger*`, `--warning-*`, `--info-*`, `--success` |
+| Status | `--danger*` (text on a danger fill: `--on-danger`), `--warning-*`, `--info-*`, `--success` |
 | Shape | `--radius-sm/md/lg` (6/8/12px), `--shadow-sm/md/lg`, `--focus-ring` |
 | Spacing | `--space-1`…`--space-7` (4, 8, 12, 16, 24, 32, 48px) |
 | Type | `--text-xs/sm/md/lg/title` (12, 13, 14, 16, 40px) |
@@ -48,7 +49,7 @@ beautiful**, in every task, not as a final polish pass.
 | Buttons | `.btn` + `.btn-primary` / `.btn-secondary` / `.btn-ghost` / `.btn-danger` / `.btn-ghost-danger` | One primary per view. Icon + text label; 32px tall. |
 | Notices | `.notice` + `.notice-warning` / `.notice-info` | Inline, with an icon, a bold title and one short sentence. |
 | Popover | `.popover` (`DeleteNoteButton.css`) | Small confirmations; focus moves to the safe choice; Escape and outside click close it. |
-| Toast | `.toast` (`UpdatePrompt.css`) | Non-blocking app messages, bottom right (full width on phones). |
+| Toast | `.toast` (`UpdatePrompt.css`) | Non-blocking app messages: bottom right on desktop; on phones a bar under the page, so it never covers controls. |
 | Empty states | `EmptyState`, `.note-missing` | Soft icon tile, short heading, one sentence, optional action. |
 | Note list | `Sidebar.tsx` | Title + relative time; whole row clickable (stretched link); active row raised. |
 

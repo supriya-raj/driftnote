@@ -4,10 +4,11 @@ import { CollaborationExtension } from "@blocknote/core/yjs";
 import { NOTE_CONTENT_KEY } from "@driftnote/shared";
 import { BlockNoteView } from "@blocknote/mantine";
 import { useCreateBlockNote } from "@blocknote/react";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { XmlFragment } from "yjs";
 import { useColorScheme } from "../lib/useColorScheme";
 import type { OpenNote } from "../notes/noteDoc";
+import { repairEditorAria } from "../notes/editorAria";
 import { isSafeLinkHref, openLinkSafely } from "../notes/safeLinks";
 import { noteSchema } from "../notes/schema";
 import { useIdentity } from "../presence/identity";
@@ -27,6 +28,8 @@ export function NoteEditor({ note, sync }: { note: OpenNote; sync: NoteSync }) {
   const editor = useCreateBlockNote(
     {
       schema: noteSchema,
+      // The editable area is a text box; give it a name screen readers can announce.
+      domAttributes: { editor: { "aria-label": "Note text" } },
       links: { isValidLink: isSafeLinkHref, onClick: openLinkSafely },
       // The editor reads and writes the note's Y.XmlFragment directly (ADR 003), and
       // shares cursors through the sync provider's awareness. Cursor positions are Yjs
@@ -49,8 +52,16 @@ export function NoteEditor({ note, sync }: { note: OpenNote; sync: NoteSync }) {
     awareness.setLocalStateField("user", { name: identity.name, color: identity.color });
   }, [awareness, identity]);
 
+  const wrapper = useRef<HTMLDivElement>(null);
+  useEffect(() => (wrapper.current ? repairEditorAria(wrapper.current) : undefined), []);
+
   return (
-    <div className="note-editor" data-testid="note-editor" data-local-state={localState}>
+    <div
+      ref={wrapper}
+      className="note-editor"
+      data-testid="note-editor"
+      data-local-state={localState}
+    >
       <BlockNoteView editor={editor} editable={editable} theme={colorScheme} />
     </div>
   );

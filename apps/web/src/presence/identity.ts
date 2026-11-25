@@ -9,17 +9,27 @@ export interface Identity {
   color: string;
 }
 
-/** Cursor colours: mid-tones that read on light and dark pages, with white labels. */
+/**
+ * Cursor colours: each has at least 4.5:1 contrast with the white text of cursor labels
+ * and avatars (WCAG AA).
+ */
 export const PRESENCE_COLORS = [
   "#3e63dd",
   "#0f6e7a",
-  "#30a46c",
-  "#d6409f",
+  "#1f7a52",
+  "#c2298a",
   "#8e4ec6",
-  "#e54d2e",
+  "#ca3214",
   "#ad5700",
   "#5b5bd6",
 ] as const;
+
+/** Earlier palette colours that failed that contrast, and what replaced them. */
+const RETIRED_COLORS: Record<string, string> = {
+  "#30a46c": "#1f7a52",
+  "#d6409f": "#c2298a",
+  "#e54d2e": "#ca3214",
+};
 
 const KEY = "driftnote.identity";
 const ADJECTIVES = ["Calm", "Bright", "Quiet", "Swift", "Gentle", "Bold", "Curious", "Sunny"];
@@ -35,7 +45,7 @@ function read(): Identity | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<Identity>;
     if (typeof parsed.name === "string" && typeof parsed.color === "string") {
-      return { name: parsed.name, color: parsed.color };
+      return { name: parsed.name, color: RETIRED_COLORS[parsed.color] ?? parsed.color };
     }
   } catch {
     // Storage blocked or corrupt: fall back to a default for this page view.
