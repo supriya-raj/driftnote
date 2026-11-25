@@ -5,7 +5,7 @@
 ahead of Phase 3). Phases 0-2 and T19 complete.
 
 ## Next action
-T60: write the M5a acceptance test (`@M5a-done`, expected to fail).
+T61: axe scans of every screen and state (light/dark, desktop/phone) and the fixes.
 
 ## Task status
 
@@ -61,7 +61,7 @@ T60: write the M5a acceptance test (`@M5a-done`, expected to fail).
 | 4 | T54 | History panel | todo |
 | 4 | T55 | Restore | todo |
 | 4 | T56 | Close M4 | todo |
-| 5a | T60 | M5a acceptance test | todo |
+| 5a | T60 | M5a acceptance test | done |
 | 5a | T61 | Accessibility scans + fixes | todo |
 | 5a | T62 | Keyboard and focus | todo |
 | 5a | T63 | Screen-reader semantics | todo |
@@ -398,3 +398,13 @@ Chromium's screencast (`e2e/visual/recorder.ts`) and encodes GIFs in-repo with `
 `docs/media/` (offline.gif, collaboration.gif, app-light.png, app-dark.png). README
 rewritten. New `@M2` test: two people typing at the same moment each keep their place.
 `controlSyncNetwork` now also closes open sync sockets on `block()` and accepts a context.
+T60 done (Phase 5a): `@axe-core/playwright` 4.14 (axe-core 4.14.1). Helpers
+`e2e/support/a11y.ts` (`expectAccessible(page, screen)`: WCAG 2.2 A/AA tags, readable
+list of violations) and `e2e/support/keyboard.ts` (`tabTo`: Tab/Shift+Tab only, lists the
+focus path when the target is never reached; `expectFocusVisible`: not on <body> and
+`:focus-visible`). `e2e/m5a-accessibility.spec.ts` (`@M5a-done`, `test.fail()`): keyboard-only
+create → title → Enter to text → share (Escape returns focus to Share) → second note →
+open first from the list (focus on its title) → rename → delete (focus on Cancel, not lost
+afterwards), axe on each screen. UI contract it fixes: opening a note focuses its title;
+Enter in the title moves to the text. Fails first on a real violation: contrast of the
+"You" caption in the sidebar footer. Expected failure in all three browsers.
